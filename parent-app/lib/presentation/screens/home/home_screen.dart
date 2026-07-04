@@ -73,7 +73,9 @@ class _Dashboard extends StatelessWidget {
         const Text('快捷操作', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
         const SizedBox(height: 12),
         Row(children: [
-          Expanded(child: _action(context, '绑定设备', Icons.add_circle_outline, () {})),
+          Expanded(child: _action(context, '绑定设备', Icons.add_circle_outline, () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const DevicesScreen()));
+          })),
           const SizedBox(width: 12),
           Expanded(child: _action(context, '创建规则', Icons.rule_outlined, () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const RulesScreen()));
