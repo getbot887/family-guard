@@ -36,11 +36,19 @@
         android:layout_height="wrap_content"
         android:text="保存" />
 
+    <Button
+        android:id="@+id/btnTest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="测试连接"
+        android:layout_marginTop="8dp"
+        style="?android:attr/borderlessButtonStyle" />
+
     <TextView
         android:id="@+id/tvStatus"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#4CAF50"
+        android:textAlignment="center"
         android:layout_marginTop="16dp"
         android:visibility="gone" />
 
