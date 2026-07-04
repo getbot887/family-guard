@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
+	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 
 	"family-guard-backend/internal/middleware"
@@ -12,6 +15,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// 内存中存储配对码 → 家长用户ID的映射（有效期30分钟）
+var pendingBinds sync.Map
+
+type pendingBind struct {
+	OwnerID    int
+	DeviceName string
+	CreatedAt  time.Time
+}
 
 type Handler struct {
 	repo      *repository.Repository
@@ -95,12 +107,31 @@ func (h *Handler) BindDevice(c *gin.Context) {
 		c.JSON(400, apiErr("请求参数无效"))
 		return
 	}
-	device, err := h.repo.BindDevice(userID, req.DeviceName, req.PairingCode)
-	if err != nil {
-		c.JSON(400, apiErr("绑定失败：设备不存在或已被绑定"))
-		return
+
+	// 生成6位随机配对码（去重）
+	var code string
+	for i := 0; i < 10; i++ {
+		code = fmt.Sprintf("%06d", rand.Intn(1000000))
+		if _, loaded := pendingBinds.LoadOrStore(code, &pendingBind{
+			OwnerID:    userID,
+			DeviceName: req.DeviceName,
+			CreatedAt:  time.Now(),
+		}); !loaded {
+			break
+		}
 	}
-	c.JSON(200, apiData(device))
+
+	// 30分钟后自动过期
+	go func() {
+		time.Sleep(30 * time.Minute)
+		pendingBinds.Delete(code)
+	}()
+
+	c.JSON(200, apiData(gin.H{
+		"pairing_code":  code,
+		"device_name":   req.DeviceName,
+		"valid_minutes": 30,
+	}))
 }
 
 func (h *Handler) UnbindDevice(c *gin.Context) {
@@ -267,18 +298,26 @@ func (h *Handler) ChildRegister(c *gin.Context) {
 		return
 	}
 
-	device, err := h.repo.GetDeviceByDeviceID(req.DeviceID)
-	if err != nil {
-		device = &models.Device{DeviceID: req.DeviceID, DeviceName: req.DeviceName, Model: req.Model, PairingCode: req.PairingCode}
-		if err := h.repo.CreateDevice(device); err != nil {
-			c.JSON(500, apiErr("设备创建失败"))
-			return
-		}
-	} else {
-		if device.PairingCode != req.PairingCode {
-			c.JSON(401, apiErr("配对码错误"))
-			return
-		}
+	// 查找配对码
+	val, ok := pendingBinds.Load(req.PairingCode)
+	if !ok {
+		c.JSON(401, apiErr("配对码无效或已过期"))
+		return
+	}
+	pb := val.(*pendingBind)
+	pendingBinds.Delete(req.PairingCode)
+
+	// 创建设备（直接绑定到家长）
+	device := &models.Device{
+		DeviceID:    req.DeviceID,
+		DeviceName:  pb.DeviceName,
+		Model:       req.Model,
+		OwnerID:     &pb.OwnerID,
+		PairingCode: "",
+	}
+	if err := h.repo.CreateDevice(device); err != nil {
+		c.JSON(500, apiErr("设备创建失败"))
+		return
 	}
 
 	token, exp, err := middleware.GenerateToken(device.ID, device.DeviceID, "child", h.jwtSecret, 30*24*time.Hour)

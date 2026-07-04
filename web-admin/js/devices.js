@@ -41,25 +41,25 @@ export function loadDevices() {
 }
 
 export function bindDevice() {
-  showModal('绑定设备', `<form id="form-bind">
-    <div class="form-group"><label>配对码</label><input type="text" id="bind-code" required maxlength="6" placeholder="6位数字，由家长设置"></div>
-    <div class="form-group"><label>设备名称</label><input type="text" id="bind-name" required placeholder="例如：小明的手机"></div>
-    <div class="modal-actions"><button type="button" class="btn-ghost" id="cancel-bind">取消</button><button type="submit" class="btn-primary">绑定</button></div>
-  </form>`);
+  const deviceName = prompt('请输入设备名称（例如：小明的手机）');
+  if (!deviceName || !deviceName.trim()) return;
 
-  setTimeout(() => {
-    document.getElementById('cancel-bind')?.addEventListener('click', hideModal);
-    document.getElementById('form-bind')?.addEventListener('submit', e => {
-      e.preventDefault();
-      const pairingCode = document.getElementById('bind-code').value.trim();
-      const deviceName = document.getElementById('bind-name').value.trim();
-      if (!pairingCode || !deviceName) return showToast('请填写所有字段', 'error');
-      if (pairingCode.length !== 6) return showToast('配对码为6位数字', 'error');
-      api('POST', '/devices/bind', { pairing_code: pairingCode, device_name: deviceName })
-        .then(res => { if (res.data) { showToast('绑定成功', 'success'); hideModal(); loadDevices(); } else showToast(res.error || '绑定失败', 'error'); })
-        .catch(err => showToast(err.message, 'error'));
-    });
-  }, 100);
+  api('POST', '/devices/bind', { device_name: deviceName.trim() }).then(res => {
+    if (res.data?.pairing_code) {
+      showModal('绑定设备', `
+        <p style="margin-bottom:16px">配对码已生成，请在30分钟内完成绑定</p>
+        <div style="text-align:center;padding:24px;background:#f8fafc;border-radius:8px;margin-bottom:16px">
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px">配对码</div>
+          <div style="font-size:42px;font-weight:700;letter-spacing:12px;color:#6366f1;font-family:monospace">${res.data.pairing_code}</div>
+        </div>
+        <p style="font-size:13px;color:#64748b">在孩子端App中输入此配对码即可完成绑定</p>
+        <div class="modal-actions"><button class="btn-primary" onclick="hideModal()">我知道了</button></div>
+      `);
+      loadDevices();
+    } else {
+      showToast(res.error || '生成配对码失败', 'error');
+    }
+  }).catch(err => showToast(err.message, 'error'));
 }
 
 function confirmUnbind(id, name) {
