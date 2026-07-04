@@ -35,6 +35,11 @@ Thumbs.db
 # Test
 test_write.txt
 
+# Build artifacts
+backend/server
+backend.tar.gz
+backend/deploy.md
+
 # Claude/OpenCode docs
 .claude/
 .opencode/
