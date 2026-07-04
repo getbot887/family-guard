@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
 
             Thread {
                 try {
-                    val url = "${NetworkUtils.fullBaseUrl}/health"
+                    val url = "${NetworkUtils.baseUrl}/health"
                     val request = okhttp3.Request.Builder().url(url).get().build()
                     val response = okhttp3.OkHttpClient.Builder()
                         .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
