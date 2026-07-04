@@ -41,10 +41,10 @@ export function loadDevices() {
 }
 
 export function bindDevice() {
+  console.log('bindDevice called');
   showModal('绑定设备', `<form id="form-bind">
-    <div class="form-group"><label>设备 ID</label><input type="text" id="bind-id" required></div>
-    <div class="form-group"><label>配对码</label><input type="text" id="bind-code" required maxlength="6"></div>
-    <div class="form-group"><label>设备名称</label><input type="text" id="bind-name" required></div>
+    <div class="form-group"><label>配对码</label><input type="text" id="bind-code" required maxlength="6" placeholder="6位数字，由家长设置"></div>
+    <div class="form-group"><label>设备名称</label><input type="text" id="bind-name" required placeholder="例如：小明的手机"></div>
     <div class="modal-actions"><button type="button" class="btn-ghost" id="cancel-bind">取消</button><button type="submit" class="btn-primary">绑定</button></div>
   </form>`);
 
@@ -52,15 +52,15 @@ export function bindDevice() {
     document.getElementById('cancel-bind')?.addEventListener('click', hideModal);
     document.getElementById('form-bind')?.addEventListener('submit', e => {
       e.preventDefault();
-      const deviceId = document.getElementById('bind-id').value.trim();
       const pairingCode = document.getElementById('bind-code').value.trim();
       const deviceName = document.getElementById('bind-name').value.trim();
-      if (!deviceId || !pairingCode || !deviceName) return showToast('请填写所有字段', 'error');
-      api('POST', '/devices/bind', { device_id: deviceId, pairing_code: pairingCode, device_name: deviceName })
+      if (!pairingCode || !deviceName) return showToast('请填写所有字段', 'error');
+      if (pairingCode.length !== 6) return showToast('配对码为6位数字', 'error');
+      api('POST', '/devices/bind', { pairing_code: pairingCode, device_name: deviceName })
         .then(res => { if (res.data) { showToast('绑定成功', 'success'); hideModal(); loadDevices(); } else showToast(res.error || '绑定失败', 'error'); })
         .catch(err => showToast(err.message, 'error'));
     });
-  }, 0);
+  }, 100);
 }
 
 function confirmUnbind(id, name) {

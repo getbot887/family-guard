@@ -77,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- 快捷操作 ---
   document.getElementById('btn-quick-bind')?.addEventListener('click', () => { showPage('devices'); setTimeout(bindDevice, 50); });
   document.getElementById('btn-quick-rule')?.addEventListener('click', () => { showPage('rules'); setTimeout(createRule, 50); });
-  document.getElementById('btn-add-device')?.addEventListener('click', bindDevice);
+  console.log('btn-add-device:', !!document.getElementById('btn-add-device'));
+  document.getElementById('btn-add-device')?.addEventListener('click', () => { console.log('btn-add-device clicked'); bindDevice(); });
   document.getElementById('btn-add-rule')?.addEventListener('click', createRule);
 
   // --- Modal ---

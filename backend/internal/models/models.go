@@ -102,9 +102,7 @@ type LoginResponse struct {
 }
 
 type BindDeviceRequest struct {
-	DeviceID   string `json:"device_id" binding:"required"`
-	DeviceName string `json:"device_name"`
-	Model      string `json:"model"`
+	DeviceName  string `json:"device_name"`
 	PairingCode string `json:"pairing_code" binding:"required"`
 }
 

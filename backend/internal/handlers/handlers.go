@@ -95,7 +95,7 @@ func (h *Handler) BindDevice(c *gin.Context) {
 		c.JSON(400, apiErr("请求参数无效"))
 		return
 	}
-	device, err := h.repo.BindDevice(req.DeviceID, userID, req.DeviceName, req.Model, req.PairingCode)
+	device, err := h.repo.BindDevice(userID, req.DeviceName, req.PairingCode)
 	if err != nil {
 		c.JSON(400, apiErr("绑定失败：设备不存在或已被绑定"))
 		return
