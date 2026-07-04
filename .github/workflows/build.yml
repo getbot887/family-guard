@@ -1,0 +1,70 @@
+name: Build All
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-backend:
+    name: Build Go Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Build
+        working-directory: backend
+        run: |
+          go mod tidy
+          go build -o server ./cmd/server
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-server
+          path: backend/server
+
+  build-parent-app:
+    name: Build Flutter Parent App
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: stable
+      - name: Build APK
+        working-directory: parent-app
+        run: |
+          flutter pub get
+          flutter build apk --debug
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: parent-app-debug-apk
+          path: parent-app/build/app/outputs/flutter-apk/app-debug.apk
+
+  build-child-app:
+    name: Build Kotlin Child App
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build APK
+        working-directory: child-app
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: child-app-debug-apk
+          path: child-app/app/build/outputs/apk/debug/app-debug.apk
