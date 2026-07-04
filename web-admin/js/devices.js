@@ -41,7 +41,6 @@ export function loadDevices() {
 }
 
 export function bindDevice() {
-  console.log('bindDevice called');
   showModal('绑定设备', `<form id="form-bind">
     <div class="form-group"><label>配对码</label><input type="text" id="bind-code" required maxlength="6" placeholder="6位数字，由家长设置"></div>
     <div class="form-group"><label>设备名称</label><input type="text" id="bind-name" required placeholder="例如：小明的手机"></div>
