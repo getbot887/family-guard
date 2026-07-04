@@ -14,13 +14,17 @@ class BlockActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
-        setContentView(android.R.layout.simple_list_item_2)
         val pkg = intent.getStringExtra("pkg") ?: "未知"
         val name = getAppName(pkg)
-        val tv1 = findViewById<android.R.id.text1>(android.R.id.text1)
-        val tv2 = findViewById<android.R.id.text2>(android.R.id.text2)
-        tv1?.text = "应用已限制"
-        tv2?.text = "「$name」当前处于限制使用时段"
+        val textView = android.widget.TextView(this).apply {
+            textSize = 20f
+            setPadding(48, 48, 48, 48)
+            text = "应用已限制\n「$name」当前处于限制使用时段"
+            setTextColor(android.graphics.Color.WHITE)
+            setBackgroundColor(android.graphics.Color.BLACK)
+            gravity = android.view.Gravity.CENTER
+        }
+        setContentView(textView)
     }
 
     private fun getAppName(pkg: String) = try {

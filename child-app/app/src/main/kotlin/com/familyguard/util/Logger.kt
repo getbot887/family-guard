@@ -24,12 +24,11 @@ object Logger {
             "timestamp" to fmt.format(Date())
         )
         val json = org.json.JSONObject(entry).toString()
-        prefs?.edit()?.apply {
-            val list = (prefs.getString(KEY, "") ?: "").split("\n").toMutableList()
-            list.add(json)
-            if (list.size > 500) list.removeAt(0)
-            putString(KEY, list.joinToString("\n"))
-        }?.apply()
+        val currentPrefs = prefs ?: return
+        val list = (currentPrefs.getString(KEY, "") ?: "").split("\n").toMutableList()
+        list.add(json)
+        if (list.size > 500) list.removeAt(0)
+        currentPrefs.edit().putString(KEY, list.joinToString("\n")).apply()
     }
 
     fun getUnreportedList(): List<String> = prefs?.getString(KEY, "")?.split("\n")?.filter { it.isNotBlank() } ?: emptyList()

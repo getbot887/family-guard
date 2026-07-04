@@ -9,6 +9,7 @@ import com.familyguard.BlockActivity
 import com.familyguard.util.RuleMatcher
 import com.familyguard.util.RuleStorage
 import com.familyguard.util.Logger
+import com.familyguard.util.NetworkUtils
 
 class BlockAccessibilityService : AccessibilityService() {
 
