@@ -38,3 +38,5 @@ test_write.txt
 # Claude/OpenCode docs
 .claude/
 .opencode/
+claude.docs/
+opencode.docs/
