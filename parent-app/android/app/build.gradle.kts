@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.familyguard.family_guard_parent"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
