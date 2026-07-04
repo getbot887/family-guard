@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="32">
+    android:padding="32dp">
 
     <TextView
         android:layout_width="wrap_content"
@@ -12,14 +12,14 @@
         android:text="FamilyGuard"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="24" />
+        android:layout_marginBottom="24dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="服务器地址（填写主域名）"
         android:textSize="14sp"
-        android:layout_marginBottom="8" />
+        android:layout_marginBottom="8dp" />
 
     <EditText
         android:id="@+id/editDomain"
@@ -28,7 +28,7 @@
         android:hint="https://your-domain.com"
         android:inputType="textUri"
         android:singleLine="true"
-        android:layout_marginBottom="16" />
+        android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/btnSave"
@@ -41,7 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#4CAF50"
-        android:layout_marginTop="16"
+        android:layout_marginTop="16dp"
         android:visibility="gone" />
 
 </LinearLayout>
