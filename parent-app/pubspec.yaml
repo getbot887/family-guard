@@ -39,7 +39,7 @@ dependencies:
   dio: ^5.4.0
 
   # 本地存储
-  shared_preferences: 2.2.2
+  shared_preferences: ^2.2.0
 
   # 二维码扫描（绑定设备用）
   mobile_scanner: ^3.5.0
