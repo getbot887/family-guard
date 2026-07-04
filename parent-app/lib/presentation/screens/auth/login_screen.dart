@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/providers.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/config/api_config.dart';
+import '../../../data/services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +17,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   bool _isLogin = true, _obscure = true;
   String? _nickname;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ApiConfig.isDefaultUrl) _editServerUrl(context);
+    });
+  }
 
   @override
   void dispose() {
@@ -62,6 +72,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text('家长守护，安心成长', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
                 const SizedBox(height: 48),
                 _buildFormCard(),
+                const SizedBox(height: 16),
+                TextButton.icon(
+                  onPressed: () => _editServerUrl(context),
+                  icon: const Icon(Icons.settings_outlined, size: 16),
+                  label: Text('服务器: ${ApiConfig.displayUrl}',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                ),
               ],
             ),
           ),
@@ -142,5 +159,37 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void _editServerUrl(BuildContext context) {
+    final controller = TextEditingController(text: ApiConfig.displayUrl);
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('服务器地址'),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('填写主域名，/api/v1 会自动拼接', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 12),
+        TextField(controller: controller, decoration: const InputDecoration(
+          hintText: 'https://your-domain.com',
+          prefixIcon: Icon(Icons.link),
+        )),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        ElevatedButton(onPressed: () async {
+          final url = controller.text.trim();
+          if (url.isEmpty || !url.startsWith('http')) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入有效的 URL')));
+            return;
+          }
+          await ApiConfig.setBaseUrl(url);
+          ApiService().updateBaseUrl(ApiConfig.baseUrl);
+          if (ctx.mounted) Navigator.pop(ctx);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('服务器地址已更新'), backgroundColor: AppTheme.success));
+            setState(() {});
+          }
+        }, child: const Text('保存')),
+      ],
+    ));
   }
 }

@@ -27,4 +27,5 @@ class ApiConfig {
   }
 
   static String get displayUrl => _cachedBaseUrl;
+  static bool get isDefaultUrl => _cachedBaseUrl == _prodPlaceholder;
 }

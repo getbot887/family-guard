@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/robfig/cron/v3"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 
 	db := mustConnect(dbHost, dbPort, dbUser, dbPass, dbName)
 	mustMigrate(db)
+	seedDefaultUser(db)
 	repo := repository.New(db)
 	handler := handlers.New(repo, jwtSecret)
 
@@ -133,6 +135,30 @@ func mustMigrate(db *sql.DB) {
 		db.Exec(q)
 	}
 	fmt.Println("数据库迁移完成")
+}
+
+func seedDefaultUser(db *sql.DB) {
+	email := getEnv("DEFAULT_EMAIL", "admin@familyguard.com")
+	password := getEnv("DEFAULT_PASSWORD", "admin123456")
+	nickname := getEnv("DEFAULT_NICKNAME", "管理员")
+
+	var exists int
+	db.QueryRow(`SELECT COUNT(*) FROM users WHERE email=$1`, email).Scan(&exists)
+	if exists > 0 {
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("预置用户密码加密失败: %v", err)
+		return
+	}
+	_, err = db.Exec(`INSERT INTO users (email, password_hash, nickname) VALUES ($1, $2, $3)`, email, string(hash), nickname)
+	if err != nil {
+		log.Printf("创建预置用户失败: %v", err)
+		return
+	}
+	log.Printf("已创建预置账号: %s / %s", email, password)
 }
 
 func cors(allowedOrigin string) gin.HandlerFunc {
