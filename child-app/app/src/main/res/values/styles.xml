@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FamilyGuard" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">#6C63FF</item>
+        <item name="colorPrimaryDark">#4A42D9</item>
+        <item name="colorAccent">#FF6584</item>
+        <item name="android:statusBarColor">#4A42D9</item>
+    </style>
+</resources>
