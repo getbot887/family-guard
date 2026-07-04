@@ -46,7 +46,7 @@ object NetworkUtils {
                 .post(RequestBody.create(JSON_MEDIA, body.toString()))
                 .build()).execute()
             if (resp.isSuccessful) {
-                JSONObject(resp.body()!!.string()).getJSONObject("data").getString("token")
+                JSONObject(resp.body!!.string()).getJSONObject("data").getString("token")
             } else null
         } catch (_: Exception) { null }
     }
@@ -58,7 +58,7 @@ object NetworkUtils {
                 .header("X-Device-Token", token)
                 .build()).execute()
             if (!resp.isSuccessful) return@withContext null
-            val data = JSONObject(resp.body()!!.string()).getJSONObject("data")
+            val data = JSONObject(resp.body!!.string()).getJSONObject("data")
             val rulesArr = data.getJSONArray("rules")
             val rules = mutableListOf<BlockRule>()
             for (i in 0 until rulesArr.length()) {

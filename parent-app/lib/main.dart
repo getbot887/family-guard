@@ -14,3 +14,27 @@ void main() async {
   await Logger.init(baseUrl: ApiConfig.baseUrl);
   runApp(const FamilyGuardApp());
 }
+
+class FamilyGuardApp extends StatelessWidget {
+  const FamilyGuardApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
+        ChangeNotifierProvider(create: (_) => DeviceProvider()),
+        ChangeNotifierProvider(create: (_) => RuleProvider()),
+        ChangeNotifierProvider(create: (_) => EventProvider()),
+      ],
+      child: MaterialApp(
+        title: 'FamilyGuard',
+        theme: AppTheme.dark,
+        debugShowCheckedModeBanner: false,
+        home: Consumer<AuthProvider>(
+          builder: (context, auth, _) => auth.isLoggedIn ? const HomeScreen() : const LoginScreen(),
+        ),
+      ),
+    );
+  }
+}

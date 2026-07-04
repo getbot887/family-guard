@@ -64,12 +64,17 @@ class _LoginScreenState extends State<LoginScreen> {
               suffixIcon: IconButton(icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined), onPressed: () => setState(() => _obscure = !_obscure))),
             validator: (v) => v == null || v.length < 6 ? '密码至少6位' : null),
           const SizedBox(height: 24),
-          Consumer<AuthProvider>(builder: (_, a, __) => ElevatedButton(
-            onPressed: a.isLoading ? null : _submit,
-            child: a.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : Text(_isLogin ? '登录' : '注册'))),
-        ]))))),
-      ]),
+          Consumer<AuthProvider>(builder: (_, a, __) {
+            final label = _isLogin ? '登录' : '注册';
+            return ElevatedButton(
+              onPressed: a.isLoading ? null : _submit,
+              child: a.isLoading
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text(label),
+            );
+          }),
+        ]))));
+      ],
     ))));
   }
 }
