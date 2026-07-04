@@ -17,6 +17,9 @@ import androidx.core.content.ContextCompat
 import com.familyguard.receiver.DeviceAdmin
 import com.familyguard.util.Logger
 import com.familyguard.util.NetworkUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -125,8 +128,8 @@ class MainActivity : AppCompatActivity() {
             val deviceId = "android_${Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)}"
             val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
 
-            Thread {
-                val token = NetworkUtils.registerDevice(NetworkUtils.fullBaseUrl, deviceId, deviceName, code)
+            CoroutineScope(Dispatchers.IO).launch {
+                val token = NetworkUtils.registerDevice(deviceId, deviceName, code)
                 runOnUiThread {
                     if (token != null) {
                         NetworkUtils.saveToken(this@MainActivity, token)
@@ -140,7 +143,7 @@ class MainActivity : AppCompatActivity() {
                     btnBind.isEnabled = true
                     btnBind.text = "绑定设备"
                 }
-            }.start()
+            }
         }
     }
 
