@@ -45,10 +45,9 @@ export function hideModal() {
 
 // --- Navigation ---
 export function showPage(pageId) {
-  // 只切换 main-content 内的页面，不影响 login 页面
   document.querySelectorAll('.main-content .page').forEach(p => p.style.display = 'none');
   const target = document.getElementById('page-' + pageId);
-  if (target) target.style.display = '';
+  if (target) target.style.display = 'block';
 
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => n.classList.remove('active'));
   const nav = document.querySelector(`.sidebar-nav .nav-item[data-page="page-${pageId}"]`);

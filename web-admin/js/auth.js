@@ -7,15 +7,17 @@ import { loadDashboard } from './dashboard.js';
 function showApp() {
   document.getElementById('page-login')?.classList.add('hidden');
   document.getElementById('app-layout')?.classList.remove('hidden');
-  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-  document.getElementById('page-dashboard').style.display = '';
+  document.querySelectorAll('.main-content .page').forEach(p => p.style.display = 'none');
+  const dashboard = document.getElementById('page-dashboard');
+  if (dashboard) dashboard.style.display = 'block';
   loadDashboard();
 }
 
 function showLogin() {
   document.getElementById('app-layout')?.classList.add('hidden');
   document.getElementById('page-login')?.classList.remove('hidden');
-  document.querySelectorAll('.page').forEach(p => p.style.display = '');
+  const loginPage = document.getElementById('page-login');
+  if (loginPage) loginPage.style.display = 'block';
 }
 
 export function login(email, password) {

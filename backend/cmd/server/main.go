@@ -88,13 +88,15 @@ func main() {
 	// 日志上传 — 家长端路由
 	parent.POST("/logs", handler.UploadLogs)
 
-	// Web 管理后台 SPA（从项目根目录加载）
+	// Web 管理后台 SPA
 	webDir := os.Getenv("WEB_ADMIN_DIR")
 	if webDir == "" {
-		webDir = "../web-admin" // 相对于 backend/ 目录
+		webDir = "/home/dell/projects/app/web-admin"
 	}
 	if _, err := os.Stat(webDir); err == nil {
 		r.Static("/web", webDir)
+		r.StaticFile("/style.css", webDir+"/style.css")
+		r.Static("/js", webDir+"/js")
 		r.GET("/", func(c *gin.Context) {
 			c.File(webDir + "/index.html")
 		})
