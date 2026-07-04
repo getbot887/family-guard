@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FamilyGuard - 家长控制管理后台</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="toast-container" class="toast-container"></div>
+
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal-dialog">
+    <div class="modal-header"><h3 id="modal-title">提示</h3><button class="modal-close" data-action="modal-close">&times;</button></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ===== Login ===== -->
+<div id="page-login" class="page">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <h1 class="login-title">FamilyGuard</h1>
+      <p class="login-desc">家长控制管理后台</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">登录</button>
+        <button class="auth-tab" data-tab="register">注册</button>
+      </div>
+      <form id="form-login">
+        <input type="email" id="login-email" placeholder="邮箱" required>
+        <input type="password" id="login-password" placeholder="密码" required>
+        <button type="submit" class="btn-primary" style="width:100%;margin-top:8px">登录</button>
+      </form>
+      <form id="form-register" class="hidden">
+        <input type="email" id="reg-email" placeholder="邮箱" required>
+        <input type="text" id="reg-nickname" placeholder="昵称" required>
+        <input type="password" id="reg-password" placeholder="密码（至少6位）" required>
+        <input type="password" id="reg-password-confirm" placeholder="确认密码" required>
+        <button type="submit" class="btn-primary" style="width:100%;margin-top:8px">注册</button>
+      </form>
+      <div id="config-panel" class="config-panel hidden">
+        <input type="text" id="server-url" placeholder="服务器地址，例如 http://localhost:8080">
+        <button class="btn-primary" data-action="save-server-url" style="width:100%;margin-top:4px">保存</button>
+      </div>
+      <button class="btn-link" data-action="toggle-server-config" style="width:100%;margin-top:12px">⚙ 配置服务器地址</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Layout (after login) ===== -->
+<div id="app-layout" class="app-layout hidden">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">FamilyGuard</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-page="page-dashboard">📊 概览</button>
+      <button class="nav-item" data-page="page-devices">📱 设备管理</button>
+      <button class="nav-item" data-page="page-rules">📋 规则管理</button>
+      <button class="nav-item" data-page="page-events">📝 拦截记录</button>
+    </nav>
+    <div class="sidebar-footer">
+      <span id="sidebar-user">admin@familyguard.com</span>
+      <button class="btn-text" id="btn-logout">退出</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page">
+      <div class="page-header"><h2>概览</h2></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon" style="background:#eef2ff;color:#6366f1">📊</div><span class="stat-value" id="stat-total">—</span><span class="stat-label">总拦截次数</span></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#fef2f2;color:#ef4444">🚫</div><span class="stat-value" id="stat-today">—</span><span class="stat-label">今日拦截</span></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4;color:#22c55e">📱</div><span class="stat-value" id="stat-bound">—</span><span class="stat-label">绑定设备</span></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#eff6ff;color:#3b82f6">🟢</div><span class="stat-value" id="stat-online">—</span><span class="stat-label">在线设备</span></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>快捷操作</h3></div>
+        <div class="card-body" style="display:flex;gap:8px">
+          <button class="btn-primary" id="btn-quick-bind">+ 绑定设备</button>
+          <button class="btn-primary" id="btn-quick-rule">+ 创建规则</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><h3>最近拦截事件</h3></div>
+        <div class="card-body"><table class="table"><thead><tr><th>应用</th><th>包名</th><th>时间</th></tr></thead><tbody id="dashboard-events"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Devices -->
+    <div id="page-devices" class="page">
+      <div class="page-header"><h2>设备管理</h2><button class="btn-primary" id="btn-add-device">+ 绑定设备</button></div>
+      <div class="card">
+        <div class="card-body"><table class="table"><thead><tr><th>状态</th><th>设备名称</th><th>型号</th><th>最后在线</th><th>操作</th></tr></thead><tbody id="device-list"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Rules -->
+    <div id="page-rules" class="page">
+      <div class="page-header"><h2>规则管理</h2><button class="btn-primary" id="btn-add-rule">+ 创建规则</button></div>
+      <div class="card">
+        <div class="card-body"><table class="table"><thead><tr><th>启用</th><th>规则名称</th><th>关联应用</th><th>生效时段</th><th>操作</th></tr></thead><tbody id="rule-list"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Events -->
+    <div id="page-events" class="page">
+      <div class="page-header"><h2>拦截记录</h2></div>
+      <div class="card">
+        <div class="card-body">
+          <table class="table"><thead><tr><th>应用</th><th>包名</th><th>时间</th></tr></thead><tbody id="events-full"></tbody></table>
+          <div class="pagination">
+            <button class="btn-ghost" id="btn-prev-page">← 上一页</button>
+            <span id="page-info">第 1 页</span>
+            <button class="btn-ghost" id="btn-next-page">下一页 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

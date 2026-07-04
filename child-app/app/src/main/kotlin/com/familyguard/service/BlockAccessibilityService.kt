@@ -23,7 +23,7 @@ class BlockAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this; isRunning = true
-        NetworkUtils.loadSavedUrl(this)
+        Logger.init(this)
         storage = RuleStorage(this); matcher = RuleMatcher(storage)
         serviceInfo = serviceInfo.apply {
             eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED

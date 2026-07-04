@@ -51,6 +51,7 @@ func main() {
 	{
 		api.POST("/register", handler.Register)
 		api.POST("/login", handler.Login)
+		api.POST("/child/register", handler.ChildRegister) // 孩子端注册（无需认证）
 	}
 
 	parent := api.Group("")
@@ -77,16 +78,31 @@ func main() {
 	child := api.Group("/child")
 	child.Use(middleware.ChildAuth(jwtSecret))
 	{
-		child.POST("/register", handler.ChildRegister)
 		child.GET("/config", handler.ChildGetConfig)
 		child.POST("/apps", handler.ChildReportApps)
 		child.POST("/events", handler.ChildReportEvents)
 		child.POST("/heartbeat", handler.ChildHeartbeat)
+		child.POST("/logs", handler.UploadLogs)
 	}
 
-	// 日志上传 — 家长端和孩子端分开路由
+	// 日志上传 — 家长端路由
 	parent.POST("/logs", handler.UploadLogs)
-	child.POST("/logs", handler.UploadLogs)
+
+	// Web 管理后台 SPA（从项目根目录加载）
+	webDir := os.Getenv("WEB_ADMIN_DIR")
+	if webDir == "" {
+		webDir = "../web-admin" // 相对于 backend/ 目录
+	}
+	if _, err := os.Stat(webDir); err == nil {
+		r.Static("/web", webDir)
+		r.GET("/", func(c *gin.Context) {
+			c.File(webDir + "/index.html")
+		})
+	} else {
+		r.GET("/", func(c *gin.Context) {
+			c.JSON(200, gin.H{"service": "FamilyGuard", "status": "running"})
+		})
+	}
 
 	log.Printf("FamilyGuard 后端启动在 :%s", port)
 	r.Run(":" + port)

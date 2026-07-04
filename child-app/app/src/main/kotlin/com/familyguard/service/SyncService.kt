@@ -12,7 +12,12 @@ import kotlinx.coroutines.*
 import java.util.concurrent.Executors
 
 class SyncService : Service() {
-    companion object { private const val CHANNEL_ID = "sync_channel"; private const val NOTIFY_ID = 1001 }
+    companion object {
+        private const val CHANNEL_ID = "sync_channel"
+        private const val NOTIFY_ID = 1001
+        private const val SYNC_INTERVAL = 15 * 60 * 1000L
+        private const val LOG_UPLOAD_INTERVAL = 5 * 60 * 1000L
+    }
     private val handler = CoroutineExceptionHandler { _, e ->
         Log.e("SyncService", "协程异常，30秒后恢复", e)
     }
@@ -24,6 +29,7 @@ class SyncService : Service() {
     override fun onCreate() {
         super.onCreate()
         NetworkUtils.loadSavedUrl(this)
+        Logger.init(this)
         storage = RuleStorage(this)
         createChannel()
         startForeground(NOTIFY_ID, android.app.Notification.Builder(this, CHANNEL_ID)
@@ -31,15 +37,28 @@ class SyncService : Service() {
             .setSmallIcon(android.R.drawable.ic_dialog_info).build())
         Log.d("SyncService", "已启动")
 
+        // 定时同步规则
         scope.launch {
             while (isActive) {
                 try {
                     syncRules()
                     reportEvents()
                 } catch (e: Exception) {
-                    Log.e("SyncService", "同步循环异常", e)
+                    Log.e("SyncService", "规则同步异常", e)
                 }
-                delay(15 * 60 * 1000L)
+                delay(SYNC_INTERVAL)
+            }
+        }
+
+        // 定时上传日志（频率更高）
+        scope.launch {
+            while (isActive) {
+                try {
+                    uploadLogs()
+                } catch (e: Exception) {
+                    Log.e("SyncService", "日志上传异常", e)
+                }
+                delay(LOG_UPLOAD_INTERVAL)
             }
         }
     }
@@ -50,8 +69,8 @@ class SyncService : Service() {
         if (!storage.shouldSync()) return
         try {
             val rules = NetworkUtils.fetchConfig(storage.getDeviceToken())
-            if (rules != null) { storage.saveRules(rules); Log.d("SyncService", "规则同步成功") }
-        } catch (e: Exception) { Log.e("SyncService", "同步失败", e) }
+            if (rules != null) { storage.saveRules(rules); Logger.i("SyncService", "规则同步成功") }
+        } catch (e: Exception) { Logger.e("SyncService", "规则同步失败", e) }
     }
 
     private suspend fun reportEvents() {
@@ -59,8 +78,22 @@ class SyncService : Service() {
         if (events.isEmpty()) return
         try {
             NetworkUtils.reportEvents(storage.getDeviceToken(), events)
-            Log.d("SyncService", "上报${events.size}条事件")
-        } catch (_: Exception) {}
+            storage.clearEvents()
+            Logger.i("SyncService", "上报${events.size}条事件")
+        } catch (e: Exception) { Logger.e("SyncService", "事件上报失败", e) }
+    }
+
+    private suspend fun uploadLogs() {
+        val token = NetworkUtils.getToken(this)
+        if (token.isEmpty()) return
+        val logs = Logger.getCachedLogs()
+        if (logs.isEmpty()) return
+        try {
+            NetworkUtils.uploadLogs(token, logs)
+            Logger.clearCache()
+        } catch (e: Exception) {
+            Log.e("SyncService", "日志上传失败", e)
+        }
     }
 
     private fun createChannel() {
