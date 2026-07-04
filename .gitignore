@@ -1,0 +1,40 @@
+# Go
+backend/server
+backend/.vscode
+
+# Flutter
+parent-app/.dart_tool/
+parent-app/.packages
+parent-app/build/
+parent-app/.flutter-plugins
+parent-app/.flutter-plugins-dependencies
+parent-app/ios/Pods/
+parent-app/linux/
+parent-app/macos/
+parent-app/windows/
+
+# Android
+child-app/build/
+child-app/.gradle/
+child-app/local.properties
+child-app/captures/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+*.log
+
+# Test
+test_write.txt
+
+# Claude/OpenCode docs
+.claude/
+.opencode/

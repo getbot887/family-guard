@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FamilyGuard"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="服务器地址（填写主域名）"
+        android:textSize="14sp"
+        android:layout_marginBottom="8" />
+
+    <EditText
+        android:id="@+id/editDomain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="https://your-domain.com"
+        android:inputType="textUri"
+        android:singleLine="true"
+        android:layout_marginBottom="16" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="保存" />
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#4CAF50"
+        android:layout_marginTop="16"
+        android:visibility="gone" />
+
+</LinearLayout>

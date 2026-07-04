@@ -1,0 +1,23 @@
+# KidSafe 后端配置
+# 复制为 config.yaml 并修改实际值
+
+server:
+  port: 8080
+  mode: release          # debug | release
+  domain: "https://kidsafe.yourdomain.com"  # ← 你的域名
+
+database:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  name: kidsafe
+
+jwt:
+  secret: "change-this-to-a-random-secret-key"  # ← 改成一个随机字符串
+  parent_expiry: 24h
+  child_expiry: 720h   # 30天
+
+log:
+  level: info
+  format: json
