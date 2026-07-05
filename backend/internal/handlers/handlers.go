@@ -194,7 +194,9 @@ func (h *Handler) CreateRule(c *gin.Context) {
 		c.JSON(400, apiErr("请求参数无效: "+err.Error()))
 		return
 	}
-	rule := &models.Rule{Name: req.Name, OwnerID: userID, IsActive: true}
+	rule := &models.Rule{Name: req.Name, OwnerID: userID, IsActive: true, Mode: "blacklist"}
+	if req.Mode == "whitelist" { rule.Mode = "whitelist" }
+	rule.Priority = req.Priority
 	if err := h.repo.CreateRule(rule); err != nil {
 		c.JSON(500, apiErr("创建规则失败"))
 		return
@@ -235,6 +237,8 @@ func (h *Handler) UpdateRule(c *gin.Context) {
 
 	if req.Name != nil { rule.Name = *req.Name }
 	if req.IsActive != nil { rule.IsActive = *req.IsActive }
+	if req.Mode != nil { rule.Mode = *req.Mode }
+	if req.Priority != nil { rule.Priority = *req.Priority }
 	h.repo.UpdateRule(rule)
 
 	if req.AppIDs != nil {

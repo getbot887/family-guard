@@ -30,6 +30,8 @@ type Rule struct {
 	Name      string    `json:"name" db:"name"`
 	OwnerID   int       `json:"owner_id" db:"owner_id"`
 	IsActive  bool      `json:"is_active" db:"is_active"`
+	Mode      string    `json:"mode" db:"mode"`           // blacklist | whitelist
+	Priority  int       `json:"priority" db:"priority"`   // 数字越大优先级越高
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
@@ -111,6 +113,8 @@ type CreateRuleRequest struct {
 	AppIDs    []string          `json:"app_ids"`
 	Schedules []ScheduleInput   `json:"schedules"`
 	DeviceIDs []int             `json:"device_ids"`
+	Mode      string            `json:"mode"`     // blacklist | whitelist
+	Priority  int               `json:"priority"` // 0=最低
 }
 
 type UpdateRuleRequest struct {
@@ -119,6 +123,8 @@ type UpdateRuleRequest struct {
 	AppIDs    []string          `json:"app_ids"`
 	Schedules []ScheduleInput   `json:"schedules"`
 	DeviceIDs []int             `json:"device_ids"`
+	Mode      *string           `json:"mode"`
+	Priority  *int              `json:"priority"`
 }
 
 type ScheduleInput struct {

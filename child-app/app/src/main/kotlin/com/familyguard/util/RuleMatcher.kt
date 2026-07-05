@@ -5,12 +5,21 @@ import java.util.*
 class RuleMatcher(private val storage: RuleStorage) {
     private var rules: List<BlockRule> = emptyList()
 
-    fun update(r: List<BlockRule>) { rules = r }
+    fun update(r: List<BlockRule>) { rules = r.sortedByDescending { it.priority } }
 
     fun shouldBlock(pkg: String): Boolean {
-        return rules.any { rule ->
-            rule.isActive && rule.blockedApps.contains(pkg) && inTimeSlot(rule)
+        // 按优先级从高到低判断
+        for (rule in rules.sortedByDescending { it.priority }) {
+            if (!rule.isActive || !inTimeSlot(rule)) continue
+            if (rule.mode == "whitelist") {
+                // 白名单模式：在列表中的应用不拦截，其余全部拦截
+                if (!rule.blockedApps.contains(pkg)) return true
+            } else {
+                // 黑名单模式（默认）：在列表中的应用拦截
+                if (rule.blockedApps.contains(pkg)) return true
+            }
         }
+        return false
     }
 
     private fun inTimeSlot(rule: BlockRule): Boolean {
@@ -45,5 +54,5 @@ class RuleMatcher(private val storage: RuleStorage) {
     }
 }
 
-data class BlockRule(val id: Int, val name: String, val isActive: Boolean, val blockedApps: List<String>, val schedules: List<TimeSlot>)
+data class BlockRule(val id: Int, val name: String, val isActive: Boolean, val blockedApps: List<String>, val schedules: List<TimeSlot>, val mode: String = "blacklist", val priority: Int = 0)
 data class TimeSlot(val daysOfWeek: List<Int>, val startTime: String, val endTime: String)

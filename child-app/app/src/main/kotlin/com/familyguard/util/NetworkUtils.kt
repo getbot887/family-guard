@@ -95,7 +95,7 @@ object NetworkUtils {
                     s.optJSONArray("days_of_week")?.let { for (k in 0 until it.length()) days.add(it.getInt(k)) }
                     scheds.add(TimeSlot(days, s.getString("start_time"), s.getString("end_time")))
                 }}
-                rules.add(BlockRule(r.getInt("id"), r.getString("name"), true, apps, scheds))
+                rules.add(BlockRule(r.getInt("id"), r.getString("name"), true, apps, scheds, r.optString("mode", "blacklist"), r.optInt("priority", 0)))
             }
             val logLevel = data.optString("log_level", "debug")
             val syncInterval = data.optInt("sync_interval_seconds", 120)

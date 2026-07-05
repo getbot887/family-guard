@@ -21,8 +21,8 @@ export function loadRules() {
       const deviceNames = r.device_ids?.length ? `(${r.device_ids.length}台设备)` : '(全部设备)';
       return `<tr>
         <td><label class="toggle"><input type="checkbox" class="rule-toggle" data-id="${r.id}" ${r.is_active ? 'checked' : ''}><span class="toggle-slider"></span></label></td>
-        <td><strong>${escapeHtml(r.name)}</strong></td>
-        <td>${badges || '<span style="color:#94a3b8">无</span>'}</td>
+        <td><strong>${escapeHtml(r.name)}</strong>${r.priority > 0 ? ` <span style="font-size:11px;color:#6366f1">P${r.priority}</span>` : ''}</td>
+        <td>${escapeHtml(r.mode === 'whitelist' ? '✅ 白名单' : '⛔ 黑名单')} ${badges || '<span style="color:#94a3b8">无</span>'}</td>
         <td style="color:#64748b;font-size:12px">${sched || '<span style="color:#94a3b8">—</span>'}</td>
         <td style="color:#64748b;font-size:12px">${deviceNames}</td>
         <td>
@@ -88,6 +88,13 @@ function loadFormAndShow(rule) {
 
       showModal(isEdit ? '编辑规则' : '新建规则', `<form id="form-rule">
         <div class="form-group"><label>规则名称</label><input type="text" id="rule-name" required placeholder="例如：学习时间禁止游戏" value="${escapeHtml(rule?.name||'')}"></div>
+        <div class="form-group"><label>规则模式</label>
+          <select id="rule-mode" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            <option value="blacklist" ${(rule?.mode||'blacklist')==='blacklist'?'selected':''}>黑名单（禁止以下应用）</option>
+            <option value="whitelist" ${(rule?.mode||'')==='whitelist'?'selected':''}>白名单（仅允许以下应用）</option>
+          </select>
+        </div>
+        <div class="form-group"><label>优先级</label><input type="number" id="rule-priority" value="${rule?.priority||0}" style="width:80px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px"> <span style="font-size:12px;color:#64748b">数字越大越优先</span></div>
         <div class="form-group"><label>关联应用</label><div class="app-selector">${appHtml}</div></div>
         <div class="form-group"><label>生效时段</label>
           <div class="schedule-row">
@@ -114,7 +121,9 @@ function loadFormAndShow(rule) {
           const start = document.getElementById('sched-start').value;
           const end = document.getElementById('sched-end').value;
           const schedules = [{ days_of_week: days, start_time: start || '00:00', end_time: end || '23:59' }];
-          const body = { name, app_ids: appIds, schedules, device_ids: deviceIds };
+          const mode = document.getElementById('rule-mode')?.value || 'blacklist';
+          const priority = parseInt(document.getElementById('rule-priority')?.value || '0', 10);
+          const body = { name, app_ids: appIds, schedules, device_ids: deviceIds, mode, priority };
 
           const request = isEdit
             ? api('PUT', '/rules/' + editingRuleId, body)

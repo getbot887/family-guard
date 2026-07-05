@@ -154,6 +154,9 @@ func mustMigrate(db *sql.DB) {
 	db.Exec(`ALTER TABLE rule_schedules ALTER COLUMN end_time TYPE VARCHAR(8) USING end_time::varchar(8)`)
 	// 迁移：新增 log_level 列
 	db.Exec(`ALTER TABLE devices ADD COLUMN IF NOT EXISTS log_level VARCHAR(10) NOT NULL DEFAULT 'debug'`)
+	// 迁移：规则新增 mode 和 priority
+	db.Exec(`ALTER TABLE rules ADD COLUMN IF NOT EXISTS mode VARCHAR(10) NOT NULL DEFAULT 'blacklist'`)
+	db.Exec(`ALTER TABLE rules ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT 0`)
 
 	indexes := []string{
 		`CREATE INDEX IF NOT EXISTS idx_devices_owner_id ON devices(owner_id)`,

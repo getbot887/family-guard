@@ -124,22 +124,22 @@ func (r *Repository) UpdateDeviceOnline(deviceID string, online bool) {
 
 func (r *Repository) CreateRule(rule *models.Rule) error {
 	return r.db.QueryRow(
-		`INSERT INTO rules (name,owner_id,is_active) VALUES ($1,$2,$3) RETURNING id,created_at,updated_at`,
-		rule.Name, rule.OwnerID, rule.IsActive,
+		`INSERT INTO rules (name,owner_id,is_active,mode,priority) VALUES ($1,$2,$3,$4,$5) RETURNING id,created_at,updated_at`,
+		rule.Name, rule.OwnerID, rule.IsActive, rule.Mode, rule.Priority,
 	).Scan(&rule.ID, &rule.CreatedAt, &rule.UpdatedAt)
 }
 
 func (r *Repository) GetRuleByID(id int) (*models.Rule, error) {
 	rule := &models.Rule{}
 	err := r.db.QueryRow(
-		`SELECT id,name,owner_id,is_active,created_at,updated_at FROM rules WHERE id=$1`, id,
-	).Scan(&rule.ID, &rule.Name, &rule.OwnerID, &rule.IsActive, &rule.CreatedAt, &rule.UpdatedAt)
+		`SELECT id,name,owner_id,is_active,mode,priority,created_at,updated_at FROM rules WHERE id=$1`, id,
+	).Scan(&rule.ID, &rule.Name, &rule.OwnerID, &rule.IsActive, &rule.Mode, &rule.Priority, &rule.CreatedAt, &rule.UpdatedAt)
 	return rule, err
 }
 
 func (r *Repository) GetRulesByOwnerID(ownerID int) ([]models.Rule, error) {
 	rows, err := r.db.Query(
-		`SELECT id,name,owner_id,is_active,created_at,updated_at FROM rules WHERE owner_id=$1 ORDER BY created_at DESC`, ownerID,
+		`SELECT id,name,owner_id,is_active,mode,priority,created_at,updated_at FROM rules WHERE owner_id=$1 ORDER BY priority DESC, created_at DESC`, ownerID,
 	)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (r *Repository) GetRulesByOwnerID(ownerID int) ([]models.Rule, error) {
 	var rules []models.Rule
 	for rows.Next() {
 		var rule models.Rule
-		rows.Scan(&rule.ID, &rule.Name, &rule.OwnerID, &rule.IsActive, &rule.CreatedAt, &rule.UpdatedAt)
+		rows.Scan(&rule.ID, &rule.Name, &rule.OwnerID, &rule.IsActive, &rule.Mode, &rule.Priority, &rule.CreatedAt, &rule.UpdatedAt)
 		rules = append(rules, rule)
 	}
 	return rules, nil
