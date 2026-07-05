@@ -37,12 +37,13 @@ class SyncService : Service() {
             .setSmallIcon(android.R.drawable.ic_dialog_info).build())
         Log.d("SyncService", "已启动")
 
-        // 定时同步规则
+        // 定时同步规则（立即执行一次，之后每15分钟）
         scope.launch {
             while (isActive) {
                 try {
                     syncRules()
                     reportEvents()
+                    sendHeartbeat()
                 } catch (e: Exception) {
                     Log.e("SyncService", "规则同步异常", e)
                 }
@@ -94,6 +95,14 @@ class SyncService : Service() {
         } catch (e: Exception) {
             Log.e("SyncService", "日志上传失败", e)
         }
+    }
+
+    private suspend fun sendHeartbeat() {
+        val token = NetworkUtils.getToken(this)
+        if (token.isEmpty()) return
+        try {
+            NetworkUtils.sendHeartbeat(token)
+        } catch (_: Exception) {}
     }
 
     private fun createChannel() {

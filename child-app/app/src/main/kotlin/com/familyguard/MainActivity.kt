@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.familyguard.receiver.DeviceAdmin
+import com.familyguard.service.SyncService
 import com.familyguard.util.Logger
 import com.familyguard.util.NetworkUtils
 import kotlinx.coroutines.CoroutineScope
@@ -136,6 +137,8 @@ class MainActivity : AppCompatActivity() {
                         tvBindStatus.text = "绑定成功！"
                         tvBindStatus.setTextColor(0xFF4CAF50.toInt())
                         Toast.makeText(this@MainActivity, "设备已绑定", Toast.LENGTH_SHORT).show()
+                        // 启动同步服务（开始心跳和规则同步）
+                        startService(Intent(this@MainActivity, SyncService::class.java))
                     } else {
                         tvBindStatus.text = "绑定失败，请检查配对码"
                         tvBindStatus.setTextColor(0xFFF44336.toInt())
