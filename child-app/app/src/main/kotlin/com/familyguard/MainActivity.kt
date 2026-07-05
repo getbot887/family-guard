@@ -87,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnTest.setOnClickListener {
+            Logger.i("TestConn", "开始测试连接: ${NetworkUtils.baseUrl}")
             tvStatus.text = "正在测试连接..."
             tvStatus.visibility = android.view.View.VISIBLE
             btnTest.isEnabled = false
@@ -130,16 +131,19 @@ class MainActivity : AppCompatActivity() {
             val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
 
             CoroutineScope(Dispatchers.IO).launch {
+                Logger.i("Bind", "开始绑定，配对码: $code")
                 val token = NetworkUtils.registerDevice(deviceId, deviceName, code)
                 runOnUiThread {
                     if (token != null) {
                         NetworkUtils.saveToken(this@MainActivity, token)
+                        Logger.i("Bind", "绑定成功，deviceId=$deviceId")
                         tvBindStatus.text = "绑定成功！"
                         tvBindStatus.setTextColor(0xFF4CAF50.toInt())
                         Toast.makeText(this@MainActivity, "设备已绑定", Toast.LENGTH_SHORT).show()
                         // 启动同步服务（开始心跳和规则同步）
                         startService(Intent(this@MainActivity, SyncService::class.java))
                     } else {
+                        Logger.w("Bind", "绑定失败，配对码: $code")
                         tvBindStatus.text = "绑定失败，请检查配对码"
                         tvBindStatus.setTextColor(0xFFF44336.toInt())
                     }

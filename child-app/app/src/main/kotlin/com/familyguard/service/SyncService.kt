@@ -16,7 +16,7 @@ class SyncService : Service() {
         private const val CHANNEL_ID = "sync_channel"
         private const val NOTIFY_ID = 1001
         private const val SYNC_INTERVAL = 15 * 60 * 1000L
-        private const val LOG_UPLOAD_INTERVAL = 5 * 60 * 1000L
+        private const val LOG_UPLOAD_INTERVAL = 5 * 1000L // 5秒
     }
     private val handler = CoroutineExceptionHandler { _, e ->
         Log.e("SyncService", "协程异常，30秒后恢复", e)
@@ -51,7 +51,7 @@ class SyncService : Service() {
             }
         }
 
-        // 定时上传日志（频率更高）
+        // 定时上传日志（立即执行一次，之后每5分钟）
         scope.launch {
             while (isActive) {
                 try {

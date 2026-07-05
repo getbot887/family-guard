@@ -58,6 +58,7 @@
       <button class="nav-item" data-page="page-devices">📱 设备管理</button>
       <button class="nav-item" data-page="page-rules">📋 规则管理</button>
       <button class="nav-item" data-page="page-events">📝 拦截记录</button>
+      <button class="nav-item" data-page="page-logs">📋 日志</button>
     </nav>
     <div class="sidebar-footer">
       <span id="sidebar-user">admin@familyguard.com</span>
@@ -117,6 +118,33 @@
             <span id="page-info">第 1 页</span>
             <button class="btn-ghost" id="btn-next-page">下一页 →</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logs -->
+    <div id="page-logs" class="page">
+      <div class="page-header"><h2>设备日志</h2></div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-body" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="log-source" style="flex:1;min-width:120px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            <option value="child-app">孩子端</option>
+            <option value="parent-app">家长端</option>
+            <option value="all">全部</option>
+          </select>
+          <select id="log-level" style="width:100px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+            <option value="all">全部级别</option>
+            <option value="error">error</option>
+            <option value="warn">warn</option>
+            <option value="info">info</option>
+            <option value="debug">debug</option>
+          </select>
+          <button class="btn-primary" id="btn-refresh-logs">🔄 刷新</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0">
+          <pre id="log-content" style="font-size:12px;line-height:1.6;overflow:auto;max-height:650px;padding:16px;margin:0;white-space:pre-wrap;word-break:break-all;font-family:monospace">点击"刷新"加载日志</pre>
         </div>
       </div>
     </div>

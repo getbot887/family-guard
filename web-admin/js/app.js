@@ -7,6 +7,7 @@ import { loadDashboard } from './dashboard.js';
 import { loadDevices, bindDevice } from './devices.js';
 import { loadRules, createRule } from './rules.js';
 import { loadEvents } from './events.js';
+import { loadLogs } from './logs.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // --- 配置面板 ---
@@ -68,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (pageId === 'devices') loadDevices();
       else if (pageId === 'rules') loadRules();
       else if (pageId === 'events') loadEvents(1);
+      else if (pageId === 'logs') loadLogs();
     });
   });
 
@@ -79,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-quick-rule')?.addEventListener('click', () => { showPage('rules'); setTimeout(createRule, 50); });
   document.getElementById('btn-add-device')?.addEventListener('click', bindDevice);
   document.getElementById('btn-add-rule')?.addEventListener('click', createRule);
+  document.getElementById('btn-refresh-logs')?.addEventListener('click', loadLogs);
+  document.getElementById('log-source')?.addEventListener('change', loadLogs);
+  document.getElementById('log-level')?.addEventListener('change', loadLogs);
 
   // --- Modal ---
   document.getElementById('modal-overlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) hideModal(); });
