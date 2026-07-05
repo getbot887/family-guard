@@ -22,6 +22,7 @@ type Device struct {
 	IsOnline    bool       `json:"is_online" db:"is_online"`
 	LastSeenAt  *time.Time `json:"last_seen_at" db:"last_seen_at"`
 	LogLevel    string     `json:"log_level" db:"log_level"`
+	CurrentApp  string     `json:"current_app" db:"current_app"`
 	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
 }
 

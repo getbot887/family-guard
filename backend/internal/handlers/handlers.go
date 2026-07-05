@@ -412,6 +412,20 @@ func (h *Handler) ChildHeartbeat(c *gin.Context) {
 	c.JSON(200, apiOK("ok"))
 }
 
+func (h *Handler) ChildReportCurrentApp(c *gin.Context) {
+	deviceID := c.GetInt("user_id")
+	var req struct {
+		PackageName string `json:"package_name" binding:"required"`
+		AppName     string `json:"app_name"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, apiErr("参数无效"))
+		return
+	}
+	h.repo.UpdateCurrentApp(deviceID, req.PackageName)
+	c.JSON(200, apiOK("ok"))
+}
+
 // ===== Device Apps =====
 
 func (h *Handler) GetDeviceApps(c *gin.Context) {

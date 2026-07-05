@@ -85,6 +85,7 @@ func main() {
 	{
 		child.GET("/config", handler.ChildGetConfig)
 		child.POST("/apps", handler.ChildReportApps)
+		child.POST("/apps/current", handler.ChildReportCurrentApp)
 		child.POST("/events", handler.ChildReportEvents)
 		child.POST("/usage", handler.ReportUsageStats)
 		child.POST("/heartbeat", handler.ChildHeartbeat)
@@ -155,6 +156,7 @@ func mustMigrate(db *sql.DB) {
 	db.Exec(`ALTER TABLE rule_schedules ALTER COLUMN end_time TYPE VARCHAR(8) USING end_time::varchar(8)`)
 	// 迁移：新增 log_level 列
 	db.Exec(`ALTER TABLE devices ADD COLUMN IF NOT EXISTS log_level VARCHAR(10) NOT NULL DEFAULT 'debug'`)
+	db.Exec(`ALTER TABLE devices ADD COLUMN IF NOT EXISTS current_app VARCHAR(255) NOT NULL DEFAULT ''`)
 	// 迁移：规则新增 mode 和 priority
 	db.Exec(`ALTER TABLE rules ADD COLUMN IF NOT EXISTS mode VARCHAR(10) NOT NULL DEFAULT 'blacklist'`)
 	db.Exec(`ALTER TABLE rules ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT 0`)

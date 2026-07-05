@@ -6,10 +6,9 @@ import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.familyguard.BlockActivity
-import com.familyguard.util.RuleMatcher
-import com.familyguard.util.RuleStorage
-import com.familyguard.util.Logger
-import com.familyguard.util.NetworkUtils
+import com.familyguard.util.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class BlockAccessibilityService : AccessibilityService() {
 
@@ -51,6 +50,22 @@ class BlockAccessibilityService : AccessibilityService() {
                 putExtra("pkg", pkg)
             }
             startActivity(intent)
+        }
+
+        // 上报当前前台应用
+        reportCurrentApp(pkg)
+    }
+
+    private fun reportCurrentApp(pkg: String) {
+        val token = RuleStorage(this).getDeviceToken()
+        if (token.isEmpty()) return
+        val appName = try {
+            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+        } catch (_: Exception) { pkg }
+        kotlinx.coroutines.GlobalScope.launch {
+            try {
+                NetworkUtils.reportCurrentApp(token, pkg, appName)
+            } catch (_: Exception) {}
         }
     }
 

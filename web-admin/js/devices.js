@@ -3,26 +3,40 @@
 import { api } from './api.js';
 import { showToast, showModal, hideModal, formatDate, escapeHtml } from './ui.js';
 
+let refreshTimer = null;
+
 export function loadDevices() {
   const listEl = document.getElementById('device-list');
   if (!listEl) return;
-  listEl.innerHTML = '<tr><td colspan="6" class="empty">加载中...</td></tr>';
+  listEl.innerHTML = '<tr><td colspan="7" class="empty">加载中...</td></tr>';
 
+  // 启动自动刷新（每3秒）
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => { refreshDeviceList(); }, 3000);
+
+  refreshDeviceList();
+}
+
+function refreshDeviceList() {
   api('GET', '/devices').then(res => {
     const devs = res?.data || [];
+    const listEl = document.getElementById('device-list');
+    if (!listEl) return;
     if (devs.length === 0) {
-      listEl.innerHTML = '<tr><td colspan="6" class="empty">暂无绑定设备</td></tr>';
+      listEl.innerHTML = '<tr><td colspan="7" class="empty">暂无绑定设备</td></tr>';
       return;
     }
     listEl.innerHTML = devs.map(d => {
       const statusDot = d.is_online ? '🟢' : '🔴';
       const statusText = d.is_online ? '在线' : '离线';
       const logLevel = d.log_level || 'debug';
+      const currentApp = d.current_app || '';
       return `<tr>
         <td><span class="status-dot ${d.is_online ? 'online' : 'offline'}"></span>${statusText}</td>
         <td><strong>${escapeHtml(d.device_name || d.model || '未知设备')}</strong></td>
         <td style="color:#64748b">${escapeHtml(d.model || '')}</td>
         <td style="color:#64748b;font-size:12px">${formatDate(d.last_seen_at)}</td>
+        <td style="font-size:12px">${currentApp ? '📱 ' + escapeHtml(currentApp) : '<span style="color:#94a3b8">—</span>'}</td>
         <td>
           <select class="log-level-select" data-id="${escapeHtml(d.id)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px">
             <option value="debug" ${logLevel==='debug'?'selected':''}>debug</option>
@@ -40,7 +54,7 @@ export function loadDevices() {
     }).join('');
 
     listEl.querySelectorAll('.btn-view-apps').forEach(b =>
-      b.addEventListener('click', () => loadDeviceApps(b.dataset.id)));
+      b.addEventListener('click', () => { clearInterval(refreshTimer); refreshTimer = null; loadDeviceApps(b.dataset.id); }));
     listEl.querySelectorAll('.btn-unbind').forEach(b =>
       b.addEventListener('click', () => confirmUnbind(b.dataset.id, b.dataset.name)));
     listEl.querySelectorAll('.log-level-select').forEach(sel =>

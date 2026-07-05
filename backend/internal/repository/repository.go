@@ -61,8 +61,8 @@ func (r *Repository) GetDeviceByDeviceID(deviceID string) (*models.Device, error
 	var ownerID sql.NullInt64
 	var lastSeen sql.NullTime
 	err := r.db.QueryRow(
-		`SELECT id,device_id,device_name,model,owner_id,pairing_code,is_online,last_seen_at,log_level,created_at FROM devices WHERE device_id=$1`, deviceID,
-	).Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &ownerID, &d.PairingCode, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CreatedAt)
+		`SELECT id,device_id,device_name,model,owner_id,pairing_code,is_online,last_seen_at,log_level,current_app,created_at FROM devices WHERE device_id=$1`, deviceID,
+	).Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &ownerID, &d.PairingCode, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CurrentApp, &d.CreatedAt)
 	if ownerID.Valid { v := int(ownerID.Int64); d.OwnerID = &v }
 	if lastSeen.Valid { d.LastSeenAt = &lastSeen.Time }
 	return d, err
@@ -73,8 +73,8 @@ func (r *Repository) GetDeviceByID(id int) (*models.Device, error) {
 	var ownerID sql.NullInt64
 	var lastSeen sql.NullTime
 	err := r.db.QueryRow(
-		`SELECT id,device_id,device_name,model,owner_id,pairing_code,is_online,last_seen_at,log_level,created_at FROM devices WHERE id=$1`, id,
-	).Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &ownerID, &d.PairingCode, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CreatedAt)
+		`SELECT id,device_id,device_name,model,owner_id,pairing_code,is_online,last_seen_at,log_level,current_app,created_at FROM devices WHERE id=$1`, id,
+	).Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &ownerID, &d.PairingCode, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CurrentApp, &d.CreatedAt)
 	if ownerID.Valid { v := int(ownerID.Int64); d.OwnerID = &v }
 	if lastSeen.Valid { d.LastSeenAt = &lastSeen.Time }
 	return d, err
@@ -82,7 +82,7 @@ func (r *Repository) GetDeviceByID(id int) (*models.Device, error) {
 
 func (r *Repository) GetDevicesByOwnerID(ownerID int) ([]models.Device, error) {
 	rows, err := r.db.Query(
-		`SELECT id,device_id,device_name,model,owner_id,is_online,last_seen_at,log_level,created_at FROM devices WHERE owner_id=$1 ORDER BY created_at DESC`, ownerID,
+		`SELECT id,device_id,device_name,model,owner_id,is_online,last_seen_at,log_level,current_app,created_at FROM devices WHERE owner_id=$1 ORDER BY created_at DESC`, ownerID,
 	)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (r *Repository) GetDevicesByOwnerID(ownerID int) ([]models.Device, error) {
 	for rows.Next() {
 		var d models.Device
 		var lastSeen sql.NullTime
-		rows.Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &d.OwnerID, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CreatedAt)
+		rows.Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &d.OwnerID, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CurrentApp, &d.CreatedAt)
 		if lastSeen.Valid { d.LastSeenAt = &lastSeen.Time }
 		devices = append(devices, d)
 	}
@@ -104,9 +104,9 @@ func (r *Repository) BindDevice(ownerID int, deviceName, pairingCode string) (*m
 	d := &models.Device{}
 	var lastSeen sql.NullTime
 	err := r.db.QueryRow(
-		`UPDATE devices SET owner_id=$1, device_name=CASE WHEN $2='' THEN device_name ELSE $2 END, pairing_code='' WHERE owner_id IS NULL AND pairing_code=$3 RETURNING id,device_id,device_name,model,owner_id,pairing_code,is_online,last_seen_at,log_level,created_at`,
+		`UPDATE devices SET owner_id=$1, device_name=CASE WHEN $2='' THEN device_name ELSE $2 END, pairing_code='' WHERE owner_id IS NULL AND pairing_code=$3 RETURNING id,device_id,device_name,model,owner_id,pairing_code,is_online,last_seen_at,log_level,current_app,created_at`,
 		ownerID, deviceName, pairingCode,
-	).Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &d.OwnerID, &d.PairingCode, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CreatedAt)
+	).Scan(&d.ID, &d.DeviceID, &d.DeviceName, &d.Model, &d.OwnerID, &d.PairingCode, &d.IsOnline, &lastSeen, &d.LogLevel, &d.CurrentApp, &d.CreatedAt)
 	if lastSeen.Valid { d.LastSeenAt = &lastSeen.Time }
 	return d, err
 }
@@ -551,6 +551,11 @@ func (r *Repository) CleanupExpiredBinds() {
 
 func (r *Repository) UpdateDeviceConfig(deviceID int, logLevel string) error {
 	_, err := r.db.Exec(`UPDATE devices SET log_level=$2 WHERE id=$1`, deviceID, logLevel)
+	return err
+}
+
+func (r *Repository) UpdateCurrentApp(deviceID int, packageName string) error {
+	_, err := r.db.Exec(`UPDATE devices SET current_app=$2 WHERE id=$1`, deviceID, packageName)
 	return err
 }
 

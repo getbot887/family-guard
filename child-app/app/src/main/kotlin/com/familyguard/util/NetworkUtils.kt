@@ -169,4 +169,15 @@ object NetworkUtils {
                 .build()).execute()
         } catch (_: Exception) {}
     }
+
+    suspend fun reportCurrentApp(token: String, pkg: String, appName: String) = withContext(Dispatchers.IO) {
+        try {
+            client.newCall(Request.Builder()
+                .url("$fullBaseUrl/child/apps/current")
+                .post(RequestBody.create(JSON_MEDIA,
+                    JSONObject().apply { put("package_name", pkg); put("app_name", appName) }.toString()))
+                .header("X-Device-Token", token)
+                .build()).execute()
+        } catch (_: Exception) {}
+    }
 }
