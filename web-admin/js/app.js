@@ -8,6 +8,7 @@ import { loadDevices, bindDevice } from './devices.js';
 import { loadRules, createRule } from './rules.js';
 import { loadEvents } from './events.js';
 import { loadLogs } from './logs.js';
+import { loadUsage } from './usage.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // --- 配置面板 ---
@@ -70,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (pageId === 'rules') loadRules();
       else if (pageId === 'events') loadEvents(1);
       else if (pageId === 'logs') loadLogs();
+      else if (pageId === 'usage') loadUsage();
     });
   });
 
@@ -82,6 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-add-device')?.addEventListener('click', bindDevice);
   document.getElementById('btn-add-rule')?.addEventListener('click', createRule);
   document.getElementById('btn-refresh-logs')?.addEventListener('click', loadLogs);
+  document.getElementById('btn-refresh-usage')?.addEventListener('click', loadUsage);
+  const usageDate = document.getElementById('usage-date');
+  if (usageDate) { usageDate.valueAsDate = new Date(); }
+  usageDate?.addEventListener('change', loadUsage);
   document.getElementById('log-source')?.addEventListener('change', loadLogs);
   document.getElementById('log-level')?.addEventListener('change', loadLogs);
 

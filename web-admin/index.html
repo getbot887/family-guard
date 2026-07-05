@@ -59,6 +59,7 @@
       <button class="nav-item" data-page="page-rules">📋 规则管理</button>
       <button class="nav-item" data-page="page-events">📝 拦截记录</button>
       <button class="nav-item" data-page="page-logs">📋 日志</button>
+      <button class="nav-item" data-page="page-usage">📊 使用时长</button>
     </nav>
     <div class="sidebar-footer">
       <span id="sidebar-user">admin@familyguard.com</span>
@@ -146,6 +147,20 @@
         <div class="card-body" style="padding:0">
           <pre id="log-content" style="font-size:12px;line-height:1.6;overflow:auto;max-height:650px;padding:16px;margin:0;white-space:pre-wrap;word-break:break-all;font-family:monospace">点击"刷新"加载日志</pre>
         </div>
+      </div>
+    </div>
+
+    <!-- Usage -->
+    <div id="page-usage" class="page">
+      <div class="page-header"><h2>使用时长</h2></div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-body" style="display:flex;gap:8px;align-items:center">
+          <input type="date" id="usage-date" style="padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          <button class="btn-primary" id="btn-refresh-usage">📊 查询</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body"><table class="table"><thead><tr><th>应用</th><th>包名</th><th>使用时长</th></tr></thead><tbody id="usage-list"></tbody></table></div>
       </div>
     </div>
 

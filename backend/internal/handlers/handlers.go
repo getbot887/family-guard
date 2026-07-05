@@ -521,6 +521,36 @@ func (h *Handler) Health(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "ok"})
 }
 
+// ===== Usage Stats =====
+
+func (h *Handler) ReportUsageStats(c *gin.Context) {
+	deviceID := c.GetInt("user_id")
+	var req struct {
+		Stats []models.UsageStatItem `json:"stats" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, apiErr("参数无效"))
+		return
+	}
+	if err := h.repo.UpsertUsageStats(deviceID, req.Stats); err != nil {
+		c.JSON(500, apiErr("保存失败"))
+		return
+	}
+	c.JSON(200, apiOK("已保存"))
+}
+
+func (h *Handler) GetUsageStats(c *gin.Context) {
+	userID := c.GetInt("user_id")
+	deviceID, _ := strconv.Atoi(c.Query("device_id"))
+	date := c.Query("date")
+	stats, err := h.repo.GetUsageStats(userID, deviceID, date)
+	if err != nil {
+		c.JSON(500, apiErr("查询失败"))
+		return
+	}
+	c.JSON(200, apiData(stats))
+}
+
 // ===== Helpers =====
 
 func apiData(data interface{}) gin.H {

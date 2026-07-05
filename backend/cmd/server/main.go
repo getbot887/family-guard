@@ -73,6 +73,7 @@ func main() {
 
 		parent.GET("/events", handler.GetEvents)
 		parent.GET("/events/stats", handler.GetStats)
+		parent.GET("/usage", handler.GetUsageStats)
 
 		parent.GET("/logs", handler.QueryLogs)
 		parent.GET("/logs/export", handler.ExportLogs)
@@ -84,6 +85,7 @@ func main() {
 		child.GET("/config", handler.ChildGetConfig)
 		child.POST("/apps", handler.ChildReportApps)
 		child.POST("/events", handler.ChildReportEvents)
+		child.POST("/usage", handler.ReportUsageStats)
 		child.POST("/heartbeat", handler.ChildHeartbeat)
 		child.POST("/logs", handler.UploadLogs)
 	}
@@ -138,6 +140,7 @@ func mustMigrate(db *sql.DB) {
 		`CREATE TABLE IF NOT EXISTS child_apps (id SERIAL PRIMARY KEY,device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,package_name VARCHAR(255) NOT NULL,app_name VARCHAR(100) NOT NULL,synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE(device_id,package_name))`,
 		`CREATE TABLE IF NOT EXISTS app_logs (id BIGSERIAL PRIMARY KEY,source VARCHAR(20) NOT NULL,device_id VARCHAR(255),owner_id INTEGER REFERENCES users(id),level VARCHAR(10) NOT NULL,tag VARCHAR(100) NOT NULL,message TEXT NOT NULL,stacktrace TEXT,logged_at TIMESTAMP NOT NULL,uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE TABLE IF NOT EXISTS pending_binds (id SERIAL PRIMARY KEY,pairing_code VARCHAR(10) UNIQUE NOT NULL,owner_id INTEGER REFERENCES users(id),device_name VARCHAR(100),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,expires_at TIMESTAMP NOT NULL)`,
+		`CREATE TABLE IF NOT EXISTS usage_stats (id SERIAL PRIMARY KEY,device_id INTEGER REFERENCES devices(id),package_name VARCHAR(255) NOT NULL,app_name VARCHAR(100),usage_minutes INTEGER NOT NULL DEFAULT 0,stat_date DATE NOT NULL,UNIQUE(device_id,package_name,stat_date))`,
 	}
 	for _, q := range queries {
 		if _, err := db.Exec(q); err != nil {

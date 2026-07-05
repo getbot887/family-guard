@@ -491,6 +491,42 @@ func (r *Repository) CleanupOldLogs() {
 	r.db.Exec(`DELETE FROM app_logs WHERE logged_at < CURRENT_DATE - 90`)
 }
 
+// ===== Usage Stats =====
+
+func (r *Repository) UpsertUsageStats(deviceID int, stats []models.UsageStatItem) error {
+	for _, s := range stats {
+		_, err := r.db.Exec(
+			`INSERT INTO usage_stats (device_id,package_name,app_name,usage_minutes,stat_date) VALUES ($1,$2,$3,$4,$5)
+			 ON CONFLICT (device_id,package_name,stat_date) DO UPDATE SET usage_minutes=$4,app_name=$3`,
+			deviceID, s.PackageName, s.AppName, s.UsageMinutes, s.Date,
+		)
+		if err != nil { return err }
+	}
+	return nil
+}
+
+func (r *Repository) GetUsageStats(ownerID, deviceID int, date string) ([]models.UsageStatItem, error) {
+	query := `SELECT u.package_name,u.app_name,u.usage_minutes,u.stat_date FROM usage_stats u JOIN devices d ON u.device_id=d.id WHERE d.owner_id=$1`
+	var args []interface{}
+	args = append(args, ownerID)
+	n := 2
+	if deviceID > 0 { query += fmt.Sprintf(" AND u.device_id=$%d", n); args = append(args, deviceID); n++ }
+	if date != "" { query += fmt.Sprintf(" AND u.stat_date=$%d", n); args = append(args, date); n++ }
+	query += " ORDER BY u.usage_minutes DESC LIMIT 50"
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil { return nil, err }
+	defer rows.Close()
+
+	var stats []models.UsageStatItem
+	for rows.Next() {
+		var s models.UsageStatItem
+		rows.Scan(&s.PackageName, &s.AppName, &s.UsageMinutes, &s.Date)
+		stats = append(stats, s)
+	}
+	return stats, nil
+}
+
 // ===== Pending Bind =====
 
 func (r *Repository) CreatePendingBind(code string, ownerID int, deviceName string) error {

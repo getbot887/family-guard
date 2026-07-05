@@ -143,6 +143,13 @@ type ChildAppItem struct {
 	AppName     string `json:"app_name"`
 }
 
+type UsageStatItem struct {
+	PackageName string `json:"package_name" binding:"required"`
+	AppName     string `json:"app_name"`
+	UsageMinutes int   `json:"usage_minutes"`
+	Date        string `json:"date"`
+}
+
 type EventReportRequest struct {
 	Events []EventItem `json:"events" binding:"required"`
 }
