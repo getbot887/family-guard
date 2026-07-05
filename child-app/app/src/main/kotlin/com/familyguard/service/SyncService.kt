@@ -16,8 +16,8 @@ class SyncService : Service() {
     companion object {
         private const val CHANNEL_ID = "sync_channel"
         private const val NOTIFY_ID = 1001
-        private const val SYNC_INTERVAL = 15 * 60 * 1000L
         private const val LOG_UPLOAD_INTERVAL = 5 * 1000L // 5秒
+        private var syncInterval = 2 * 60 * 1000L // 默认2分钟，可从服务器配置覆盖
     }
     private val handler = CoroutineExceptionHandler { _, e ->
         Log.e("SyncService", "协程异常，30秒后恢复", e)
@@ -38,7 +38,7 @@ class SyncService : Service() {
             .setSmallIcon(android.R.drawable.ic_dialog_info).build())
         Log.d("SyncService", "已启动")
 
-        // 定时同步规则（立即执行一次，之后每15分钟）
+        // 定时同步规则（立即执行一次，之后按服务器配置的间隔）
         scope.launch {
             while (isActive) {
                 try {
@@ -48,7 +48,7 @@ class SyncService : Service() {
                 } catch (e: Exception) {
                     Log.e("SyncService", "规则同步异常", e)
                 }
-                delay(SYNC_INTERVAL)
+                delay(syncInterval)
             }
         }
 
@@ -82,8 +82,15 @@ class SyncService : Service() {
     private suspend fun syncRules() {
         if (!storage.shouldSync()) return
         try {
-            val rules = NetworkUtils.fetchConfig(storage.getDeviceToken())
-            if (rules != null) { storage.saveRules(rules); Logger.i("SyncService", "规则同步成功") }
+            val config = NetworkUtils.fetchConfig(storage.getDeviceToken())
+            if (config != null) {
+                storage.saveRules(config.rules)
+                if (config.logLevel.isNotEmpty()) {
+                    Logger.setLevel(config.logLevel)
+                    Logger.i("SyncService", "日志等级已更新: ${config.logLevel}")
+                }
+                Logger.i("SyncService", "规则同步成功")
+            }
         } catch (e: Exception) { Logger.e("SyncService", "规则同步失败", e) }
     }
 

@@ -16,12 +16,17 @@ import (
 )
 
 type Handler struct {
-	repo      *repository.Repository
-	jwtSecret string
+	repo          *repository.Repository
+	jwtSecret     string
+	syncInterval  int
 }
 
-func New(repo *repository.Repository, jwtSecret string) *Handler {
-	return &Handler{repo: repo, jwtSecret: jwtSecret}
+func New(repo *repository.Repository, jwtSecret string, syncInterval string) *Handler {
+	sec, _ := strconv.Atoi(syncInterval)
+	if sec < 30 {
+		sec = 120 // 最少30秒
+	}
+	return &Handler{repo: repo, jwtSecret: jwtSecret, syncInterval: sec}
 }
 
 // ===== Auth =====
@@ -122,6 +127,38 @@ func (h *Handler) UnbindDevice(c *gin.Context) {
 		return
 	}
 	c.JSON(200, apiOK("设备已解绑"))
+}
+
+func (h *Handler) UpdateDeviceConfig(c *gin.Context) {
+	userID := c.GetInt("user_id")
+	deviceID, _ := strconv.Atoi(c.Param("id"))
+
+	// 验证设备归属
+	device, err := h.repo.GetDeviceByID(deviceID)
+	if err != nil || device.OwnerID == nil || *device.OwnerID != userID {
+		c.JSON(404, apiErr("设备不存在"))
+		return
+	}
+
+	var req struct {
+		LogLevel string `json:"log_level"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, apiErr("参数无效"))
+		return
+	}
+
+	validLevels := map[string]bool{"debug": true, "info": true, "warn": true, "error": true}
+	if !validLevels[req.LogLevel] {
+		c.JSON(400, apiErr("无效的日志等级，可选: debug/info/warn/error"))
+		return
+	}
+
+	if err := h.repo.UpdateDeviceConfig(deviceID, req.LogLevel); err != nil {
+		c.JSON(500, apiErr("更新配置失败"))
+		return
+	}
+	c.JSON(200, apiOK("配置已更新"))
 }
 
 // ===== Rule =====

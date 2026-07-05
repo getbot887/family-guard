@@ -21,6 +21,7 @@ type Device struct {
 	PairingCode string     `json:"pairing_code,omitempty" db:"pairing_code"`
 	IsOnline    bool       `json:"is_online" db:"is_online"`
 	LastSeenAt  *time.Time `json:"last_seen_at" db:"last_seen_at"`
+	LogLevel    string     `json:"log_level" db:"log_level"`
 	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
 }
 

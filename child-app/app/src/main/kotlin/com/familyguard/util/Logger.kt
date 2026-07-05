@@ -7,9 +7,16 @@ import java.util.*
 object Logger {
     private const val KEY = "log_cache"
     private var prefs: android.content.SharedPreferences? = null
+    private var minLevel = 0 // 0=debug, 1=info, 2=warn, 3=error
+
+    private val levelMap = mapOf("debug" to 0, "info" to 1, "warn" to 2, "error" to 3)
 
     fun init(context: Context) {
         prefs = context.getSharedPreferences("logger", Context.MODE_PRIVATE)
+    }
+
+    fun setLevel(level: String) {
+        minLevel = levelMap[level.lowercase()] ?: 0
     }
 
     fun d(tag: String, msg: String) = log("debug", tag, msg)
@@ -21,6 +28,9 @@ object Logger {
     }
 
     private fun log(level: String, tag: String, msg: String, extra: Map<String, Any>? = null) {
+        // 低于最小等级的日志不记录
+        val levelNum = levelMap[level] ?: 0
+        if (levelNum < minLevel) return
         val fmt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
             timeZone = java.util.TimeZone.getTimeZone("UTC")
         }

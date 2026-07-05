@@ -6,22 +6,31 @@ import { showToast, showModal, hideModal, formatDate, escapeHtml } from './ui.js
 export function loadDevices() {
   const listEl = document.getElementById('device-list');
   if (!listEl) return;
-  listEl.innerHTML = '<tr><td colspan="5" class="empty">加载中...</td></tr>';
+  listEl.innerHTML = '<tr><td colspan="6" class="empty">加载中...</td></tr>';
 
   api('GET', '/devices').then(res => {
     const devs = res?.data || [];
     if (devs.length === 0) {
-      listEl.innerHTML = '<tr><td colspan="5" class="empty">暂无绑定设备</td></tr>';
+      listEl.innerHTML = '<tr><td colspan="6" class="empty">暂无绑定设备</td></tr>';
       return;
     }
     listEl.innerHTML = devs.map(d => {
       const statusDot = d.is_online ? '🟢' : '🔴';
       const statusText = d.is_online ? '在线' : '离线';
+      const logLevel = d.log_level || 'debug';
       return `<tr>
         <td><span class="status-dot ${d.is_online ? 'online' : 'offline'}"></span>${statusText}</td>
         <td><strong>${escapeHtml(d.device_name || d.model || '未知设备')}</strong></td>
         <td style="color:#64748b">${escapeHtml(d.model || '')}</td>
         <td style="color:#64748b;font-size:12px">${formatDate(d.last_seen_at)}</td>
+        <td>
+          <select class="log-level-select" data-id="${escapeHtml(d.id)}" style="padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px">
+            <option value="debug" ${logLevel==='debug'?'selected':''}>debug</option>
+            <option value="info" ${logLevel==='info'?'selected':''}>info</option>
+            <option value="warn" ${logLevel==='warn'?'selected':''}>warn</option>
+            <option value="error" ${logLevel==='error'?'selected':''}>error</option>
+          </select>
+        </td>
         <td>
           <button class="btn-ghost btn-sm btn-view-apps" data-id="${escapeHtml(d.id)}">应用</button>
           <button class="btn-sm btn-danger btn-unbind" data-id="${escapeHtml(d.id)}" data-name="${escapeHtml(d.device_name || d.model || '')}">解绑</button>
@@ -33,6 +42,16 @@ export function loadDevices() {
       b.addEventListener('click', () => loadDeviceApps(b.dataset.id)));
     listEl.querySelectorAll('.btn-unbind').forEach(b =>
       b.addEventListener('click', () => confirmUnbind(b.dataset.id, b.dataset.name)));
+    listEl.querySelectorAll('.log-level-select').forEach(sel =>
+      sel.addEventListener('change', () => {
+        const id = sel.dataset.id;
+        const level = sel.value;
+        api('PUT', `/devices/${id}/config`, { log_level: level })
+          .then(res => { if (res.success) showToast('日志等级已更新: ' + level, 'success');
+            else { showToast('更新失败', 'error'); sel.value = sel.getAttribute('data-old') || 'debug'; }
+          }).catch(err => showToast(err.message, 'error'));
+        sel.setAttribute('data-old', level);
+      }));
   });
 }
 

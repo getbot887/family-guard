@@ -6,8 +6,13 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
 import java.util.concurrent.TimeUnit
+
+data class ConfigResult(
+    val rules: List<BlockRule>,
+    val logLevel: String,
+    val syncIntervalSeconds: Int
+)
 
 object NetworkUtils {
     private const val API_PATH = "/api/v1"
@@ -67,7 +72,7 @@ object NetworkUtils {
         }
     }
 
-    suspend fun fetchConfig(token: String): List<BlockRule>? = withContext(Dispatchers.IO) {
+    suspend fun fetchConfig(token: String): ConfigResult? = withContext(Dispatchers.IO) {
         try {
             val resp = client.newCall(Request.Builder()
                 .url("$fullBaseUrl/child/config")
@@ -92,7 +97,9 @@ object NetworkUtils {
                 }}
                 rules.add(BlockRule(r.getInt("id"), r.getString("name"), true, apps, scheds))
             }
-            rules
+            val logLevel = data.optString("log_level", "debug")
+            val syncInterval = data.optInt("sync_interval_seconds", 120)
+            ConfigResult(rules, logLevel, syncInterval)
         } catch (_: Exception) { null }
     }
 
@@ -116,8 +123,6 @@ object NetworkUtils {
                 .build()).execute()
         } catch (_: Exception) {}
     }
-
-    // ===== 日志上传 =====
 
     fun saveToken(context: android.content.Context, token: String) {
         context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
