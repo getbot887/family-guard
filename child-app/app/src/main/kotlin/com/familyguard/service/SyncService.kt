@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import com.familyguard.collector.AppCollector
 import com.familyguard.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.Executors
@@ -51,7 +52,7 @@ class SyncService : Service() {
             }
         }
 
-        // 定时上传日志（立即执行一次，之后每5分钟）
+        // 定时上传日志（立即执行一次，之后每5秒）
         scope.launch {
             while (isActive) {
                 try {
@@ -60,6 +61,18 @@ class SyncService : Service() {
                     Log.e("SyncService", "日志上传异常", e)
                 }
                 delay(LOG_UPLOAD_INTERVAL)
+            }
+        }
+
+        // 定时上报已安装App列表（立即执行一次，之后每30分钟）
+        scope.launch {
+            while (isActive) {
+                try {
+                    reportApps()
+                } catch (e: Exception) {
+                    Log.e("SyncService", "App上报异常", e)
+                }
+                delay(30 * 60 * 1000L)
             }
         }
     }
@@ -103,6 +116,15 @@ class SyncService : Service() {
         try {
             NetworkUtils.sendHeartbeat(token)
         } catch (_: Exception) {}
+    }
+
+    private suspend fun reportApps() {
+        try {
+            AppCollector.uploadApps(this)
+            Logger.i("SyncService", "已上报App列表")
+        } catch (e: Exception) {
+            Logger.e("SyncService", "App上报失败", e)
+        }
     }
 
     private fun createChannel() {

@@ -52,6 +52,7 @@ func main() {
 		api.POST("/register", handler.Register)
 		api.POST("/login", handler.Login)
 		api.POST("/child/register", handler.ChildRegister) // 孩子端注册（无需认证）
+		api.GET("/logs/ai", handler.AILogs) // AI可以直接读取的日志
 	}
 
 	parent := api.Group("")

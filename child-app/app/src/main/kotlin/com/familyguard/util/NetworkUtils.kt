@@ -148,4 +148,20 @@ object NetworkUtils {
                 .build()).execute()
         } catch (_: Exception) {}
     }
+
+    suspend fun uploadApps(token: String, apps: List<Pair<String, String>>) = withContext(Dispatchers.IO) {
+        if (apps.isEmpty()) return@withContext
+        try {
+            val arr = JSONArray()
+            apps.forEach { (pkg, name) ->
+                arr.put(JSONObject().apply { put("package_name", pkg); put("app_name", name) })
+            }
+            client.newCall(Request.Builder()
+                .url("$fullBaseUrl/child/apps")
+                .post(RequestBody.create(JSON_MEDIA,
+                    JSONObject().apply { put("apps", arr) }.toString()))
+                .header("X-Device-Token", token)
+                .build()).execute()
+        } catch (_: Exception) {}
+    }
 }

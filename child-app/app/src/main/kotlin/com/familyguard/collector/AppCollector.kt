@@ -1,8 +1,9 @@
 package com.familyguard.collector
 
 import android.content.Context
-import android.content.pm.PackageManager
 import com.familyguard.util.NetworkUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object AppCollector {
     fun getInstalledApps(context: Context): List<Pair<String, String>> {
@@ -13,6 +14,16 @@ object AppCollector {
         return pm.queryIntentActivities(intent, 0).map {
             it.activityInfo.packageName to (it.activityInfo.loadLabel(pm).toString())
         }.distinctBy { it.first }
+    }
+
+    suspend fun uploadApps(context: Context) {
+        val token = NetworkUtils.getToken(context)
+        if (token.isEmpty()) return
+        val apps = getInstalledApps(context)
+        if (apps.isEmpty()) return
+        withContext(Dispatchers.IO) {
+            NetworkUtils.uploadApps(token, apps)
+        }
     }
 
     fun reportChange(context: Context, packageName: String) {

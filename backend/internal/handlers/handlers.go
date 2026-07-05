@@ -453,6 +453,31 @@ func (h *Handler) ExportLogs(c *gin.Context) {
 	}
 }
 
+// ===== AI Logs =====
+
+func (h *Handler) AILogs(c *gin.Context) {
+	filter := models.LogFilter{
+		Source: c.Query("source"),
+		Level:  c.Query("level"),
+		Start:  c.Query("start"),
+		End:    c.Query("end"),
+	}
+	page := models.PaginationQuery{Page: 1, PageSize: 200}
+	logs, _, _ := h.repo.QueryLogs(filter, page)
+
+	c.Header("Content-Type", "text/plain; charset=utf-8")
+	c.Header("Access-Control-Allow-Origin", "*")
+	for _, l := range logs {
+		level := l.Level
+		if level == "error" { level = "❌" }
+		ts := l.LoggedAt.Format("01-02 15:04:05")
+		fmt.Fprintf(c.Writer, "%s [%s] [%s] %s\n", ts, level, l.Tag, l.Message)
+		if l.Stacktrace != "" {
+			fmt.Fprintf(c.Writer, "  %s\n", l.Stacktrace)
+		}
+	}
+}
+
 // ===== Health =====
 
 func (h *Handler) Health(c *gin.Context) {
