@@ -17,7 +17,7 @@ object NetworkUtils {
 
     var baseUrl: String = DEFAULT_DOMAIN
         private set
-    val fullBaseUrl: String get() = "$baseUrl$API_PATH"
+    val fullBaseUrl: String get() = "${baseUrl.trimEnd('/')}$API_PATH"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -28,7 +28,7 @@ object NetworkUtils {
 
     fun loadSavedUrl(context: android.content.Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
-        baseUrl = prefs.getString(KEY_BASE_URL, DEFAULT_DOMAIN) ?: DEFAULT_DOMAIN
+        baseUrl = (prefs.getString(KEY_BASE_URL, DEFAULT_DOMAIN) ?: DEFAULT_DOMAIN).trimEnd('/')
     }
 
     fun updateBaseUrl(context: android.content.Context, domain: String) {
@@ -42,14 +42,29 @@ object NetworkUtils {
             val body = JSONObject().apply {
                 put("device_id", deviceId); put("device_name", deviceName); put("pairing_code", pairingCode)
             }
+            val url = "$fullBaseUrl/child/register"
+            android.util.Log.d("NetUtils", "POST $url body=$body")
             val resp = client.newCall(Request.Builder()
-                .url("$fullBaseUrl/child/register")
+                .url(url)
                 .post(RequestBody.create(JSON_MEDIA, body.toString()))
                 .build()).execute()
+            val bodyStr = resp.body?.string() ?: ""
+            android.util.Log.d("NetUtils", "HTTP ${resp.code} body=$bodyStr")
             if (resp.isSuccessful) {
-                JSONObject(resp.body!!.string()).getJSONObject("data").getString("token")
-            } else null
-        } catch (_: Exception) { null }
+                try {
+                    JSONObject(bodyStr).getJSONObject("data").getString("token")
+                } catch (e: Exception) {
+                    android.util.Log.e("NetUtils", "JSON解析失败: ${e.message}")
+                    null
+                }
+            } else {
+                android.util.Log.w("NetUtils", "请求失败: HTTP ${resp.code} $bodyStr")
+                null
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("NetUtils", "网络异常: ${e.message}", e)
+            null
+        }
     }
 
     suspend fun fetchConfig(token: String): List<BlockRule>? = withContext(Dispatchers.IO) {
