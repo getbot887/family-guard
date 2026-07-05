@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
-	"sync"
 	"time"
 
 	"family-guard-backend/internal/middleware"
@@ -15,15 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// 内存中存储配对码 → 家长用户ID的映射（有效期30分钟）
-var pendingBinds sync.Map
-
-type pendingBind struct {
-	OwnerID    int
-	DeviceName string
-	CreatedAt  time.Time
-}
 
 type Handler struct {
 	repo      *repository.Repository
@@ -112,20 +102,10 @@ func (h *Handler) BindDevice(c *gin.Context) {
 	var code string
 	for i := 0; i < 10; i++ {
 		code = fmt.Sprintf("%06d", rand.Intn(1000000))
-		if _, loaded := pendingBinds.LoadOrStore(code, &pendingBind{
-			OwnerID:    userID,
-			DeviceName: req.DeviceName,
-			CreatedAt:  time.Now(),
-		}); !loaded {
+		if err := h.repo.CreatePendingBind(code, userID, req.DeviceName); err == nil {
 			break
 		}
 	}
-
-	// 30分钟后自动过期
-	go func() {
-		time.Sleep(30 * time.Minute)
-		pendingBinds.Delete(code)
-	}()
 
 	c.JSON(200, apiData(gin.H{
 		"pairing_code":  code,
@@ -298,21 +278,19 @@ func (h *Handler) ChildRegister(c *gin.Context) {
 		return
 	}
 
-	// 查找配对码
-	val, ok := pendingBinds.Load(req.PairingCode)
-	if !ok {
+	// 查找并消费配对码
+	ownerID, deviceName, err := h.repo.ConsumePendingBind(req.PairingCode)
+	if err != nil {
 		c.JSON(401, apiErr("配对码无效或已过期"))
 		return
 	}
-	pb := val.(*pendingBind)
-	pendingBinds.Delete(req.PairingCode)
 
 	// 创建设备（直接绑定到家长）
 	device := &models.Device{
 		DeviceID:    req.DeviceID,
-		DeviceName:  pb.DeviceName,
+		DeviceName:  deviceName,
 		Model:       req.Model,
-		OwnerID:     &pb.OwnerID,
+		OwnerID:     &ownerID,
 		PairingCode: "",
 	}
 	if err := h.repo.CreateDevice(device); err != nil {

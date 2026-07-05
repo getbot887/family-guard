@@ -484,6 +484,28 @@ func (r *Repository) CleanupOldLogs() {
 	r.db.Exec(`DELETE FROM app_logs WHERE logged_at < CURRENT_DATE - 90`)
 }
 
+// ===== Pending Bind =====
+
+func (r *Repository) CreatePendingBind(code string, ownerID int, deviceName string) error {
+	_, err := r.db.Exec(
+		`INSERT INTO pending_binds (pairing_code, owner_id, device_name, expires_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP + INTERVAL '30 minutes')`,
+		code, ownerID, deviceName,
+	)
+	return err
+}
+
+func (r *Repository) ConsumePendingBind(code string) (ownerID int, deviceName string, err error) {
+	err = r.db.QueryRow(
+		`DELETE FROM pending_binds WHERE pairing_code=$1 AND expires_at > CURRENT_TIMESTAMP RETURNING owner_id, device_name`,
+		code,
+	).Scan(&ownerID, &deviceName)
+	return
+}
+
+func (r *Repository) CleanupExpiredBinds() {
+	r.db.Exec(`DELETE FROM pending_binds WHERE expires_at <= CURRENT_TIMESTAMP`)
+}
+
 // ===== Child Config =====
 
 type ChildRuleOutput struct {

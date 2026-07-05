@@ -80,3 +80,12 @@ CREATE TABLE IF NOT EXISTS app_logs (
     logged_at TIMESTAMP NOT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS pending_binds (
+    id SERIAL PRIMARY KEY,
+    pairing_code VARCHAR(10) UNIQUE NOT NULL,
+    owner_id INTEGER REFERENCES users(id),
+    device_name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL
+);

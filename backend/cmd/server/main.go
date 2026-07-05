@@ -37,7 +37,7 @@ func main() {
 
 	// 定时清理旧日志
 	c := cron.New()
-	if _, err := c.AddFunc("0 3 * * *", func() { repo.CleanupOldLogs() }); err != nil {
+	if _, err := c.AddFunc("0 3 * * *", func() { repo.CleanupOldLogs(); repo.CleanupExpiredBinds() }); err != nil {
 		log.Printf("cron 初始化警告: %v", err)
 	}
 	c.Start()
@@ -134,6 +134,7 @@ func mustMigrate(db *sql.DB) {
 		`CREATE TABLE IF NOT EXISTS events (id SERIAL PRIMARY KEY,device_id INTEGER REFERENCES devices(id),package_name VARCHAR(255) NOT NULL,app_name VARCHAR(100),blocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE TABLE IF NOT EXISTS child_apps (id SERIAL PRIMARY KEY,device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,package_name VARCHAR(255) NOT NULL,app_name VARCHAR(100) NOT NULL,synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE(device_id,package_name))`,
 		`CREATE TABLE IF NOT EXISTS app_logs (id BIGSERIAL PRIMARY KEY,source VARCHAR(20) NOT NULL,device_id VARCHAR(255),owner_id INTEGER REFERENCES users(id),level VARCHAR(10) NOT NULL,tag VARCHAR(100) NOT NULL,message TEXT NOT NULL,stacktrace TEXT,logged_at TIMESTAMP NOT NULL,uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
+		`CREATE TABLE IF NOT EXISTS pending_binds (id SERIAL PRIMARY KEY,pairing_code VARCHAR(10) UNIQUE NOT NULL,owner_id INTEGER REFERENCES users(id),device_name VARCHAR(100),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,expires_at TIMESTAMP NOT NULL)`,
 	}
 	for _, q := range queries {
 		if _, err := db.Exec(q); err != nil {
