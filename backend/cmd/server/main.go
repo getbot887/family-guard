@@ -64,6 +64,7 @@ func main() {
 		parent.DELETE("/devices/:id", handler.UnbindDevice)
 		parent.GET("/devices/:id/apps", handler.GetDeviceApps)
 		parent.PUT("/devices/:id/config", handler.UpdateDeviceConfig)
+		parent.POST("/devices/:id/lock", handler.LockDevice)
 
 		parent.GET("/rules", handler.GetRules)
 		parent.POST("/rules", handler.CreateRule)

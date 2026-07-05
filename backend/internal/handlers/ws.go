@@ -57,11 +57,19 @@ func (h *WSHub) Broadcast(deviceID int, msg []byte) {
 	}
 }
 
-// NotifyRulesUpdated 通知所有设备规则已更新
+// NotifyRulesUpdated 通知设备规则已更新
 func (h *WSHub) NotifyRulesUpdated(deviceIDs []int) {
-	msg := []byte(`{"event":"rules_updated","timestamp":"` + time.Now().Format(time.RFC3339) + `"}`)
+	h.sendEvent("rules_updated", deviceIDs)
+}
+
+// NotifyLock 通知设备锁屏
+func (h *WSHub) NotifyLock(deviceID int) {
+	h.sendEvent("lock", []int{deviceID})
+}
+
+func (h *WSHub) sendEvent(event string, deviceIDs []int) {
+	msg := []byte(`{"event":"` + event + `","timestamp":"` + time.Now().Format(time.RFC3339) + `"}`)
 	if len(deviceIDs) == 0 {
-		// 通知所有已连接设备
 		h.mu.RLock()
 		defer h.mu.RUnlock()
 		for did := range h.devices {

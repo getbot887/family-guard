@@ -33,6 +33,7 @@ export function loadDevices() {
         </td>
         <td>
           <button class="btn-ghost btn-sm btn-view-apps" data-id="${escapeHtml(d.id)}">应用</button>
+          <button class="btn-sm btn-lock" data-id="${escapeHtml(d.id)}" style="padding:4px 8px;font-size:12px;background:#fff;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;cursor:pointer">锁屏</button>
           <button class="btn-sm btn-danger btn-unbind" data-id="${escapeHtml(d.id)}" data-name="${escapeHtml(d.device_name || d.model || '')}">解绑</button>
         </td>
       </tr>`;
@@ -51,6 +52,16 @@ export function loadDevices() {
             else { showToast('更新失败', 'error'); sel.value = sel.getAttribute('data-old') || 'debug'; }
           }).catch(err => showToast(err.message, 'error'));
         sel.setAttribute('data-old', level);
+      }));
+    listEl.querySelectorAll('.btn-lock').forEach(b =>
+      b.addEventListener('click', () => {
+        const id = b.dataset.id;
+        if (confirm('确定要锁定该设备吗？')) {
+          api('POST', `/devices/${id}/lock`).then(res => {
+            if (res.success) showToast('锁屏指令已发送', 'success');
+            else showToast(res.error || '操作失败', 'error');
+          }).catch(err => showToast(err.message, 'error'));
+        }
       }));
   });
 }

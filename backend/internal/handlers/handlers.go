@@ -161,6 +161,19 @@ func (h *Handler) UpdateDeviceConfig(c *gin.Context) {
 	c.JSON(200, apiOK("配置已更新"))
 }
 
+func (h *Handler) LockDevice(c *gin.Context) {
+	userID := c.GetInt("user_id")
+	deviceID, _ := strconv.Atoi(c.Param("id"))
+
+	device, err := h.repo.GetDeviceByID(deviceID)
+	if err != nil || device.OwnerID == nil || *device.OwnerID != userID {
+		c.JSON(404, apiErr("设备不存在"))
+		return
+	}
+	Hub.NotifyLock(deviceID)
+	c.JSON(200, apiOK("锁屏指令已发送"))
+}
+
 // ===== Rule =====
 
 func (h *Handler) GetRules(c *gin.Context) {

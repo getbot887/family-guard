@@ -103,10 +103,22 @@ class SyncService : Service() {
             client.newWebSocket(request, object : okhttp3.WebSocketListener() {
                 override fun onMessage(webSocket: okhttp3.WebSocket, text: String) {
                     Log.d("SyncService", "WS: $text")
-                    if (text.contains("rules_updated")) {
-                        scope.launch {
-                            storage.markSynced()
-                            syncRules()
+                    when {
+                        text.contains("rules_updated") -> {
+                            scope.launch {
+                                storage.markSynced()
+                                syncRules()
+                            }
+                        }
+                        text.contains("\"lock\"") -> {
+                            // 远程锁屏
+                            scope.launch {
+                                try {
+                                    val dpm = this@SyncService.getSystemService(android.app.admin.DevicePolicyManager::class.java)
+                                    val comp = android.content.ComponentName(this@SyncService, com.familyguard.receiver.DeviceAdmin::class.java)
+                                    if (dpm.isAdminActive(comp)) dpm.lockNow()
+                                } catch (_: Exception) {}
+                            }
                         }
                     }
                 }
