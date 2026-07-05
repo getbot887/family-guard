@@ -3,6 +3,7 @@ package com.familyguard.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
@@ -75,6 +76,56 @@ class SyncService : Service() {
                 delay(30 * 60 * 1000L)
             }
         }
+
+        // WebSocket 实时监听（后端推送规则变更时立即同步）
+        scope.launch {
+            connectWebSocket()
+        }
+    }
+
+    private suspend fun connectWebSocket() {
+        val token = NetworkUtils.getToken(this)
+        if (token.isEmpty()) {
+            delay(30_000)
+            scope.launch { connectWebSocket() }
+            return
+        }
+        try {
+            val wsUrl = NetworkUtils.fullBaseUrl.replace("http", "ws") + "/child/ws"
+            Log.d("SyncService", "WS连接: $wsUrl")
+
+            val request = okhttp3.Request.Builder().url(wsUrl)
+                .header("X-Device-Token", token)
+                .build()
+            val client = okhttp3.OkHttpClient.Builder()
+                .readTimeout(0, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+            client.newWebSocket(request, object : okhttp3.WebSocketListener() {
+                override fun onMessage(webSocket: okhttp3.WebSocket, text: String) {
+                    Log.d("SyncService", "WS: $text")
+                    if (text.contains("rules_updated")) {
+                        scope.launch {
+                            storage.markSynced()
+                            syncRules()
+                        }
+                    }
+                }
+                override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, resp: okhttp3.Response?) {
+                    Log.e("SyncService", "WS断开: ${t.message}，5秒后重连")
+                }
+                override fun onClosed(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
+                    Log.d("SyncService", "WS关闭: $code $reason，5秒后重连")
+                }
+            })
+            // 等待直到 WebSocket 断开（readTimeout=0 表示不会超时）
+            // 用延迟代替 while(true)，防止失去协程取消响应
+            delay(Long.MAX_VALUE)
+        } catch (e: Exception) {
+            Log.e("SyncService", "WS异常: ${e.message}")
+        }
+        // 断开后5秒重连
+        delay(5_000)
+        scope.launch { connectWebSocket() }
     }
 
     override fun onDestroy() { scope.cancel(); super.onDestroy() }

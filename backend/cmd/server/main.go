@@ -87,6 +87,7 @@ func main() {
 		child.POST("/events", handler.ChildReportEvents)
 		child.POST("/usage", handler.ReportUsageStats)
 		child.POST("/heartbeat", handler.ChildHeartbeat)
+		child.GET("/ws", handler.ChildWS)
 		child.POST("/logs", handler.UploadLogs)
 	}
 

@@ -216,6 +216,7 @@ func (h *Handler) CreateRule(c *gin.Context) {
 	if len(req.DeviceIDs) > 0 {
 		h.repo.SetRuleDevices(rule.ID, req.DeviceIDs)
 	}
+	Hub.NotifyRulesUpdated(req.DeviceIDs)
 	c.JSON(201, apiData(rule))
 }
 
@@ -253,6 +254,7 @@ func (h *Handler) UpdateRule(c *gin.Context) {
 	if req.DeviceIDs != nil {
 		h.repo.SetRuleDevices(rule.ID, req.DeviceIDs)
 	}
+	Hub.NotifyRulesUpdated(req.DeviceIDs)
 	c.JSON(200, apiOK("规则已更新"))
 }
 
@@ -260,6 +262,7 @@ func (h *Handler) DeleteRule(c *gin.Context) {
 	userID := c.GetInt("user_id")
 	id, _ := strconv.Atoi(c.Param("id"))
 	h.repo.DeleteRule(id, userID)
+	Hub.NotifyRulesUpdated(nil)
 	c.JSON(200, apiOK("规则已删除"))
 }
 
@@ -269,6 +272,7 @@ func (h *Handler) ToggleRule(c *gin.Context) {
 	var body struct{ IsActive bool `json:"is_active"` }
 	c.ShouldBindJSON(&body)
 	h.repo.ToggleRule(id, userID, body.IsActive)
+	Hub.NotifyRulesUpdated(nil)
 	c.JSON(200, apiOK("状态已更新"))
 }
 
