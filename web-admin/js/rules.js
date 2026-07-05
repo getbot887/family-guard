@@ -6,30 +6,23 @@ import { showToast, showModal, hideModal, escapeHtml } from './ui.js';
 export function loadRules() {
   const listEl = document.getElementById('rule-list');
   if (!listEl) return;
-  listEl.innerHTML = '<li class="rule-item empty">加载中...</li>';
+  listEl.innerHTML = '<tr><td colspan="5" class="empty">加载中...</td></tr>';
 
   api('GET', '/rules').then(res => {
     const rules = res?.data || [];
-    if (rules.length === 0) { listEl.innerHTML = '<li class="rule-item empty">暂无规则</li>'; return; }
+    if (rules.length === 0) { listEl.innerHTML = '<tr><td colspan="5" class="empty">暂无规则</td></tr>'; return; }
 
     listEl.innerHTML = rules.map(r => {
-      const badges = (r.apps || []).map(a => `<span class="badge">${escapeHtml(a.app_name || a.package_name || a)}</span>`).join('');
+      const badges = (r.apps || []).map(a => `<span class="badge">${escapeHtml(a.app_name || a.package_name || a)}</span>`).join(' ');
       const sched = (r.schedules || []).map(s =>
-        `<span class="schedule-info">${escapeHtml(s.start_time || '—')} - ${escapeHtml(s.end_time || '—')}</span>`).join('');
-      return `<li class="rule-item">
-        <div class="rule-header">
-          <span class="rule-name">${escapeHtml(r.name)}</span>
-          <label class="toggle-switch">
-            <input type="checkbox" class="rule-toggle" data-id="${r.id}" ${r.is_active ? 'checked' : ''}>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="rule-details">
-          <div class="rule-apps">${badges || '<span class="empty">无应用</span>'}</div>
-          ${sched ? '<div class="rule-schedule">' + sched + '</div>' : ''}
-        </div>
-        <div class="rule-actions"><button class="btn-danger rule-delete" data-id="${r.id}">删除</button></div>
-      </li>`;
+        `${s.start_time || '—'} - ${s.end_time || '—'}`).join('; ');
+      return `<tr>
+        <td><label class="toggle"><input type="checkbox" class="rule-toggle" data-id="${r.id}" ${r.is_active ? 'checked' : ''}><span class="toggle-slider"></span></label></td>
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        <td>${badges || '<span style="color:#94a3b8">无</span>'}</td>
+        <td style="color:#64748b;font-size:12px">${sched || '<span style="color:#94a3b8">—</span>'}</td>
+        <td><button class="btn-sm btn-danger rule-delete" data-id="${r.id}">删除</button></td>
+      </tr>`;
     }).join('');
 
     listEl.querySelectorAll('.rule-toggle').forEach(t => t.addEventListener('change', () => toggleRule(t.dataset.id, t.checked)));

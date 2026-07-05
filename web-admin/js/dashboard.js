@@ -10,7 +10,7 @@ export function loadDashboard() {
   const onlineEl = document.getElementById('stat-online');
   const listEl = document.getElementById('dashboard-events');
   [todayEl, totalEl, boundEl, onlineEl].forEach(el => { if (el) el.textContent = '—'; });
-  if (listEl) listEl.innerHTML = '<li class="event-item empty">加载中...</li>';
+  if (listEl) listEl.innerHTML = '<tr><td colspan="3" class="empty">加载中...</td></tr>';
 
   Promise.all([
     api('GET', '/events/stats').catch(() => null),
@@ -28,14 +28,12 @@ export function loadDashboard() {
     if (listEl) {
       const events = evtRes?.data?.data || [];
       listEl.innerHTML = events.length === 0
-        ? '<li class="event-item empty">暂无事件</li>'
-        : events.map(e => `<li class="event-item">
-            <div class="event-info">
-              <span class="event-app">${escapeHtml(e.app_name || e.package_name || '—')}</span>
-              <span class="event-action">blocked</span>
-            </div>
-            <span class="event-time">${formatDate(e.blocked_at)}</span>
-          </li>`).join('');
+        ? '<tr><td colspan="3" class="empty">暂无事件</td></tr>'
+        : events.map(e => `<tr>
+            <td><strong>${escapeHtml(e.app_name || e.package_name || '—')}</strong></td>
+            <td style="color:#64748b;font-size:12px">${escapeHtml(e.package_name || '')}</td>
+            <td style="color:#64748b;font-size:12px">${formatDate(e.blocked_at)}</td>
+          </tr>`).join('');
     }
   });
 }

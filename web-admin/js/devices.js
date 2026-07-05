@@ -6,36 +6,32 @@ import { showToast, showModal, hideModal, formatDate, escapeHtml } from './ui.js
 export function loadDevices() {
   const listEl = document.getElementById('device-list');
   if (!listEl) return;
-  listEl.innerHTML = '<li class="device-item empty">加载中...</li>';
+  listEl.innerHTML = '<tr><td colspan="5" class="empty">加载中...</td></tr>';
 
   api('GET', '/devices').then(res => {
     const devs = res?.data || [];
     if (devs.length === 0) {
-      listEl.innerHTML = '<li class="device-item empty">暂无绑定设备</li>';
+      listEl.innerHTML = '<tr><td colspan="5" class="empty">暂无绑定设备</td></tr>';
       return;
     }
     listEl.innerHTML = devs.map(d => {
-      const statusClass = d.is_online ? 'online' : 'offline';
+      const statusDot = d.is_online ? '🟢' : '🔴';
       const statusText = d.is_online ? '在线' : '离线';
-      return `<li class="device-item" data-id="${escapeHtml(d.id)}">
-        <div class="device-info">
-          <span class="device-status-dot ${statusClass}"></span>
-          <div class="device-text">
-            <span class="device-name">${escapeHtml(d.device_name || d.model || '未知设备')}</span>
-            <span class="device-meta">${escapeHtml(d.model || '')} · ${statusText}</span>
-            <span class="device-meta">最后在线: ${formatDate(d.last_seen_at)}</span>
-          </div>
-        </div>
-        <div class="device-actions">
-          <button class="btn-view-apps" data-id="${escapeHtml(d.id)}">查看应用</button>
-          <button class="btn-unbind-device" data-id="${escapeHtml(d.id)}" data-name="${escapeHtml(d.device_name || d.model || '')}">解绑</button>
-        </div>
-      </li>`;
+      return `<tr>
+        <td><span class="status-dot ${d.is_online ? 'online' : 'offline'}"></span>${statusText}</td>
+        <td><strong>${escapeHtml(d.device_name || d.model || '未知设备')}</strong></td>
+        <td style="color:#64748b">${escapeHtml(d.model || '')}</td>
+        <td style="color:#64748b;font-size:12px">${formatDate(d.last_seen_at)}</td>
+        <td>
+          <button class="btn-ghost btn-sm btn-view-apps" data-id="${escapeHtml(d.id)}">应用</button>
+          <button class="btn-sm btn-danger btn-unbind" data-id="${escapeHtml(d.id)}" data-name="${escapeHtml(d.device_name || d.model || '')}">解绑</button>
+        </td>
+      </tr>`;
     }).join('');
 
     listEl.querySelectorAll('.btn-view-apps').forEach(b =>
       b.addEventListener('click', () => loadDeviceApps(b.dataset.id)));
-    listEl.querySelectorAll('.btn-unbind-device').forEach(b =>
+    listEl.querySelectorAll('.btn-unbind').forEach(b =>
       b.addEventListener('click', () => confirmUnbind(b.dataset.id, b.dataset.name)));
   });
 }
