@@ -122,6 +122,8 @@ class SyncService : Service() {
         if (token.isEmpty()) return
         try {
             NetworkUtils.sendHeartbeat(token)
+            getSharedPreferences("family_guard", Context.MODE_PRIVATE)
+                .edit().putLong("last_heartbeat_ok", System.currentTimeMillis()).apply()
         } catch (_: Exception) {}
     }
 
