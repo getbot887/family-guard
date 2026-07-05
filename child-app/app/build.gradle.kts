@@ -15,14 +15,18 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        create("consistent") {
+            storeFile = file("../debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
-            signingConfig = signingConfigs.create("debug") {
-                storeFile = file("../debug.keystore")
-                storePassword = "android"
-                keyAlias = "androiddebugkey"
-                keyPassword = "android"
-            }
+            signingConfig = signingConfigs.getByName("consistent")
         }
         release {
             isMinifyEnabled = true
