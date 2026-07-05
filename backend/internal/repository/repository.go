@@ -226,9 +226,16 @@ func (r *Repository) GetRuleSchedules(ruleID int) ([]models.RuleSchedule, error)
 	var schedules []models.RuleSchedule
 	for rows.Next() {
 		var s models.RuleSchedule
-		var days []int
-		rows.Scan(&s.ID, &s.RuleID, pq.Array(&days), &s.StartTime, &s.EndTime)
-		s.DaysOfWeek = days
+		var days []int64
+		var startStr, endStr sql.NullString
+		if err := rows.Scan(&s.ID, &s.RuleID, pq.Array(&days), &startStr, &endStr); err != nil {
+			return nil, fmt.Errorf("扫描调度失败: %w", err)
+		}
+		for _, d := range days {
+			s.DaysOfWeek = append(s.DaysOfWeek, int(d))
+		}
+		s.StartTime = startStr.String
+		s.EndTime = endStr.String
 		schedules = append(schedules, s)
 	}
 	return schedules, nil

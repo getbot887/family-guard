@@ -121,9 +121,9 @@ type UpdateRuleRequest struct {
 }
 
 type ScheduleInput struct {
-	DaysOfWeek []int  `json:"days_of_week" binding:"required"`
-	StartTime  string `json:"start_time" binding:"required"`
-	EndTime    string `json:"end_time" binding:"required"`
+	DaysOfWeek []int  `json:"days_of_week"`
+	StartTime  string `json:"start_time"`
+	EndTime    string `json:"end_time"`
 }
 
 type ChildRegisterRequest struct {

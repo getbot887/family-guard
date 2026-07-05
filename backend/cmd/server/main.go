@@ -130,7 +130,7 @@ func mustMigrate(db *sql.DB) {
 		`CREATE TABLE IF NOT EXISTS devices (id SERIAL PRIMARY KEY,device_id VARCHAR(255) UNIQUE NOT NULL,device_name VARCHAR(100),model VARCHAR(100),owner_id INTEGER REFERENCES users(id),pairing_code VARCHAR(10),is_online BOOLEAN DEFAULT FALSE,last_seen_at TIMESTAMP,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE TABLE IF NOT EXISTS rules (id SERIAL PRIMARY KEY,name VARCHAR(100) NOT NULL,owner_id INTEGER REFERENCES users(id),is_active BOOLEAN DEFAULT TRUE,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE TABLE IF NOT EXISTS rule_apps (id SERIAL PRIMARY KEY,rule_id INTEGER REFERENCES rules(id) ON DELETE CASCADE,package_name VARCHAR(255) NOT NULL,app_name VARCHAR(100))`,
-		`CREATE TABLE IF NOT EXISTS rule_schedules (id SERIAL PRIMARY KEY,rule_id INTEGER REFERENCES rules(id) ON DELETE CASCADE,days_of_week INTEGER[] NOT NULL,start_time TIME NOT NULL,end_time TIME NOT NULL)`,
+		`CREATE TABLE IF NOT EXISTS rule_schedules (id SERIAL PRIMARY KEY,rule_id INTEGER REFERENCES rules(id) ON DELETE CASCADE,days_of_week INTEGER[] NOT NULL,start_time VARCHAR(8) NOT NULL,end_time VARCHAR(8) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS rule_devices (rule_id INTEGER REFERENCES rules(id) ON DELETE CASCADE,device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,PRIMARY KEY (rule_id,device_id))`,
 		`CREATE TABLE IF NOT EXISTS events (id SERIAL PRIMARY KEY,device_id INTEGER REFERENCES devices(id),package_name VARCHAR(255) NOT NULL,app_name VARCHAR(100),blocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE TABLE IF NOT EXISTS child_apps (id SERIAL PRIMARY KEY,device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,package_name VARCHAR(255) NOT NULL,app_name VARCHAR(100) NOT NULL,synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE(device_id,package_name))`,
@@ -142,6 +142,10 @@ func mustMigrate(db *sql.DB) {
 			log.Printf("迁移警告: %v", err)
 		}
 	}
+
+	// 迁移：TIME → VARCHAR(8)（Go time.Time → string 不兼容）
+	db.Exec(`ALTER TABLE rule_schedules ALTER COLUMN start_time TYPE VARCHAR(8) USING start_time::varchar(8)`)
+	db.Exec(`ALTER TABLE rule_schedules ALTER COLUMN end_time TYPE VARCHAR(8) USING end_time::varchar(8)`)
 
 	indexes := []string{
 		`CREATE INDEX IF NOT EXISTS idx_devices_owner_id ON devices(owner_id)`,

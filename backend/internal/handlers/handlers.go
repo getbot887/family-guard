@@ -154,7 +154,7 @@ func (h *Handler) CreateRule(c *gin.Context) {
 	userID := c.GetInt("user_id")
 	var req models.CreateRuleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, apiErr("请求参数无效"))
+		c.JSON(400, apiErr("请求参数无效: "+err.Error()))
 		return
 	}
 	rule := &models.Rule{Name: req.Name, OwnerID: userID, IsActive: true}

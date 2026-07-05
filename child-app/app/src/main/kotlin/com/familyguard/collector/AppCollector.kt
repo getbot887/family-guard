@@ -1,6 +1,7 @@
 package com.familyguard.collector
 
 import android.content.Context
+import android.content.pm.PackageManager
 import com.familyguard.util.NetworkUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,9 +12,9 @@ object AppCollector {
         val intent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
             addCategory(android.content.Intent.CATEGORY_LAUNCHER)
         }
-        return pm.queryIntentActivities(intent, 0).map {
+        return pm.queryIntentActivities(intent, PackageManager.MATCH_ALL).map {
             it.activityInfo.packageName to (it.activityInfo.loadLabel(pm).toString())
-        }.distinctBy { it.first }
+        }.distinctBy { it.first }.sortedBy { it.second }
     }
 
     suspend fun uploadApps(context: Context) {
