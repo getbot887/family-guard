@@ -336,14 +336,26 @@ func (h *Handler) ChildRegister(c *gin.Context) {
 		return
 	}
 
-	// 查找并消费配对码
+	// 检查设备是否已经绑定过（重装APK后设备ID不变）
+	existingDevice, _ := h.repo.GetDeviceByDeviceID(req.DeviceID)
+	if existingDevice != nil && existingDevice.OwnerID != nil {
+		// 已绑定设备，直接返回新 Token
+		token, exp, err := middleware.GenerateToken(existingDevice.ID, existingDevice.DeviceID, "child", h.jwtSecret, 30*24*time.Hour)
+		if err != nil {
+			c.JSON(500, apiErr("Token生成失败"))
+			return
+		}
+		c.JSON(200, apiData(gin.H{"token": token, "expires_at": exp, "device_id": existingDevice.DeviceID}))
+		return
+	}
+
+	// 新设备：需要配对码
 	ownerID, deviceName, err := h.repo.ConsumePendingBind(req.PairingCode)
 	if err != nil {
 		c.JSON(401, apiErr("配对码无效或已过期"))
 		return
 	}
 
-	// 创建设备（直接绑定到家长）
 	device := &models.Device{
 		DeviceID:    req.DeviceID,
 		DeviceName:  deviceName,

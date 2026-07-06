@@ -138,7 +138,7 @@ type ChildRegisterRequest struct {
 	DeviceID    string `json:"device_id" binding:"required"`
 	DeviceName  string `json:"device_name"`
 	Model       string `json:"model"`
-	PairingCode string `json:"pairing_code" binding:"required"`
+	PairingCode string `json:"pairing_code"`
 }
 
 type ChildAppsRequest struct {
