@@ -201,7 +201,8 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (token != null) {
                         NetworkUtils.saveToken(this@MainActivity, token)
-                        Logger.i("Bind", "绑定成功")
+                        prefs.edit().putString("saved_pairing_code", code).apply()
+                        Logger.i("Bind", "绑定成功，配对码已保存")
                         Toast.makeText(this@MainActivity, "绑定成功", Toast.LENGTH_SHORT).show()
                         switchToDashboard()
                         startService(Intent(this@MainActivity, SyncService::class.java))
@@ -275,7 +276,7 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // 尝试用空配对码注册（后端如果已绑定会直接返回Token）
+                // 1. 先尝试空配对码（已绑定设备直接返回Token）
                 tvLoading.post { tvLoading.text = "正在连接服务器..." }
                 val newToken = NetworkUtils.registerDevice(deviceId, "", "")
                 if (newToken != null) {
@@ -287,16 +288,32 @@ class MainActivity : AppCompatActivity() {
                     }
                     return@launch
                 }
+
+                // 2. 空码失败，尝试用保存的配对码重试
+                val savedCode = prefs.getString("saved_pairing_code", "") ?: ""
+                if (savedCode.isNotEmpty()) {
+                    tvLoading.post { tvLoading.text = "正在重新绑定..." }
+                    val retryToken = NetworkUtils.registerDevice(deviceId, "", savedCode)
+                    if (retryToken != null) {
+                        NetworkUtils.saveToken(this@MainActivity, retryToken)
+                        Logger.i("AutoReg", "用保存的配对码重新绑定成功")
+                        runOnUiThread {
+                            switchToDashboard()
+                            startService(Intent(this@MainActivity, SyncService::class.java))
+                        }
+                        return@launch
+                    }
+                }
             } catch (e: Exception) {
                 Logger.e("AutoReg", "自动注册异常", e)
             }
             // 未绑定或网络错误 → 显示设置向导
             tvLoading.post { tvLoading.text = "首次使用，请完成设置" }
-            // 延迟一下让用户看到提示
             kotlinx.coroutines.delay(800)
             runOnUiThread { switchToSetupWizard() }
         }
     }
+
 
     private fun refreshStatus() {
         val isNotifyGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

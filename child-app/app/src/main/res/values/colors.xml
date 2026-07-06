@@ -12,4 +12,28 @@
     <color name="text_primary">#1E293B</color>
     <color name="text_secondary">#94A3B8</color>
     <color name="border">#E2E8F0</color>
+
+    <!-- Material3 surface colors -->
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#EEF2FF</color>
+    <color name="md_theme_light_onPrimaryContainer">#312E81</color>
+    <color name="md_theme_light_secondary">#64748B</color>
+    <color name="md_theme_light_surface">#FFFFFF</color>
+    <color name="md_theme_light_onSurface">#1E293B</color>
+    <color name="md_theme_light_surfaceVariant">#F1F5F9</color>
+
+    <!-- Stat tile accent colors -->
+    <color name="tile_accent_blue">#3B82F6</color>
+    <color name="tile_accent_green">#22C55E</color>
+    <color name="tile_accent_orange">#F59E0B</color>
+    <color name="tile_accent_purple">#8B5CF6</color>
+
+    <!-- BlockActivity gradient -->
+    <color name="block_bg_top">#1E1B4B</color>
+    <color name="block_bg_bottom">#312E81</color>
+
+    <!-- Step indicator -->
+    <color name="step_active">#6366F1</color>
+    <color name="step_inactive">#E2E8F0</color>
+    <color name="step_completed">#22C55E</color>
 </resources>

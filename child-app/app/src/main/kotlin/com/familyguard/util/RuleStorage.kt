@@ -33,8 +33,13 @@ class RuleStorage(context: Context) {
         }.toString()).apply()
     }
 
-    fun shouldSync(): Boolean = System.currentTimeMillis() - prefs.getLong("last_sync", 0) > 15 * 60 * 1000
+    fun shouldSync(): Boolean {
+        val interval = getSyncInterval() * 1000L
+        return System.currentTimeMillis() - prefs.getLong("last_sync", 0) > interval
+    }
     fun markSynced() { prefs.edit().putLong("last_sync", System.currentTimeMillis()).apply() }
+    fun saveSyncInterval(seconds: Int) { prefs.edit().putInt("sync_interval_seconds", seconds).apply() }
+    fun getSyncInterval(): Int = prefs.getInt("sync_interval_seconds", 120)
 
     fun saveDeviceToken(t: String) { prefs.edit().putString("device_token", t).apply() }
     fun getDeviceToken() = prefs.getString("device_token", "") ?: ""

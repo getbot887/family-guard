@@ -575,7 +575,7 @@ type ChildConfig struct {
 	LogLevel           string            `json:"log_level"`
 }
 
-func (r *Repository) GetChildConfig(deviceID int) (*ChildConfig, error) {
+func (r *Repository) GetChildConfig(deviceID int, syncInterval int) (*ChildConfig, error) {
 	device, err := r.GetDeviceByID(deviceID)
 	if err != nil {
 		return nil, err
@@ -602,5 +602,5 @@ func (r *Repository) GetChildConfig(deviceID int) (*ChildConfig, error) {
 		rules = append(rules, rule)
 	}
 
-	return &ChildConfig{DeviceID: device.DeviceID, Rules: rules, SyncIntervalSeconds: 120, LogLevel: device.LogLevel}, nil
+	return &ChildConfig{DeviceID: device.DeviceID, Rules: rules, SyncIntervalSeconds: syncInterval, LogLevel: device.LogLevel}, nil
 }

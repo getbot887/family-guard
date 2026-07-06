@@ -1,45 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 加载检测中（启动时先显示） -->
+    <!-- 1. Loading screen -->
     <LinearLayout
         android:id="@+id/layoutLoading"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:background="@color/primary">
-
+        android:background="@drawable/loading_bg">
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_logo_shield"
+            android:contentDescription="@null"
+            app:tint="#80FFFFFF" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="FamilyGuard"
             android:textColor="#FFFFFF"
             android:textSize="28sp"
-            android:fontFamily="sans-serif-medium" />
-
+            android:fontFamily="sans-serif-light"
+            android:layout_marginTop="16dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="family safety"
+            android:textColor="#80FFFFFF"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp" />
+        <ProgressBar
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            style="?android:attr/progressBarStyle"
+            android:indeterminate="true"
+            android:indeterminateTint="#FFFFFF"
+            android:layout_marginTop="32dp" />
         <TextView
             android:id="@+id/tvLoadingStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="正在检测设备状态..."
             android:textColor="#80FFFFFF"
-            android:textSize="14sp"
-            android:layout_marginTop="12dp" />
+            android:textSize="13sp"
+            android:layout_marginTop="16dp" />
     </LinearLayout>
 
-    <!-- 设置向导模式 -->
+    <!-- 2. Setup Wizard -->
     <LinearLayout
         android:id="@+id/setupWizard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="#F8FAFC">
-
-        <!-- 顶部栏 -->
+        android:background="#F8FAFC"
+        android:visibility="gone">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="56dp"
@@ -54,212 +72,27 @@
                 android:textSize="20sp"
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>
-
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="16dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-            <!-- 步骤标题 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="设置向导"
-                android:textSize="22sp"
-                android:textColor="@color/text_primary"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginBottom="4dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="完成以下步骤即可开始使用"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="24dp" />
-
-            <!-- 权限步骤卡片 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/card_rounded"
-                android:padding="16dp"
-                android:layout_marginBottom="12dp">
-
+                <!-- Title -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="权限设置"
-                    android:textSize="16sp"
+                    android:text="设置向导"
+                    android:textSize="22sp"
                     android:textColor="@color/text_primary"
                     android:fontFamily="sans-serif-medium"
-                    android:layout_marginBottom="12dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="10dp">
-                    <TextView
-                        android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="通知权限"
-                        android:textSize="14sp" android:textColor="@color/text_primary" />
-                    <TextView android:id="@+id/step1_status"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="13sp" android:fontFamily="sans-serif-medium" />
-                    <Button android:id="@+id/btn_grant_notify"
-                        android:layout_width="wrap_content" android:layout_height="32dp"
-                        android:text="授权" android:textSize="12sp"
-                        android:layout_marginStart="8dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="10dp">
-                    <TextView
-                        android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="无障碍服务"
-                        android:textSize="14sp" android:textColor="@color/text_primary" />
-                    <TextView android:id="@+id/step2_status"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="13sp" android:fontFamily="sans-serif-medium" />
-                    <Button android:id="@+id/btn_open_accessibility"
-                        android:layout_width="wrap_content" android:layout_height="32dp"
-                        android:text="开启" android:textSize="12sp"
-                        android:layout_marginStart="8dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-                    <TextView
-                        android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="设备管理员"
-                        android:textSize="14sp" android:textColor="@color/text_primary" />
-                    <TextView android:id="@+id/step3_status"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="13sp" android:fontFamily="sans-serif-medium" />
-                    <Button android:id="@+id/btn_open_admin"
-                        android:layout_width="wrap_content" android:layout_height="32dp"
-                        android:text="激活" android:textSize="12sp"
-                        android:layout_marginStart="8dp" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- 服务器配置卡片 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/card_rounded"
-                android:padding="16dp"
-                android:layout_marginBottom="12dp">
-
+                    android:layout_marginBottom="4dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="服务器地址"
-                    android:textSize="16sp"
-                    android:textColor="@color/text_primary"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginBottom="12dp" />
-
-                <EditText
-                    android:id="@+id/editDomain"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:hint="http://192.168.2.169:8080"
-                    android:inputType="textUri"
-                    android:singleLine="true"
-                    android:background="@drawable/input_border"
-                    android:paddingHorizontal="12dp"
+                    android:text="完成以下步骤即可开始使用"
                     android:textSize="14sp"
-                    android:textColor="#000000"
-                    android:textColorHint="#94A3B8" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-                    <Button android:id="@+id/btnSave"
-                        android:layout_width="0dp" android:layout_height="40dp"
-                        android:layout_weight="1" android:text="保存"
-                        android:textSize="13sp" android:layout_marginEnd="6dp" />
-                    <Button android:id="@+id/btnTest"
-                        android:layout_width="0dp" android:layout_height="40dp"
-                        android:layout_weight="1" android:text="测试连接"
-                        android:textSize="13sp" android:layout_marginStart="6dp" />
-                </LinearLayout>
-
-                <TextView android:id="@+id/tvStatus"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textAlignment="center" android:layout_marginTop="8dp"
-                    android:textSize="13sp" android:visibility="gone" />
-            </LinearLayout>
-
-            <!-- 绑定设备卡片 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/card_rounded"
-                android:padding="16dp"
-                android:layout_marginBottom="24dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="绑定设备"
-                    android:textSize="16sp"
-                    android:textColor="@color/text_primary"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginBottom="12dp" />
-
-                <EditText
-                    android:id="@+id/editCode"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:hint="输入6位配对码"
-                    android:inputType="number"
-                    android:maxLength="6"
-                    android:singleLine="true"
-                    android:background="@drawable/input_border"
-                    android:paddingHorizontal="12dp"
-                    android:textSize="14sp"
-                    android:textColor="#000000"
-                    android:textColorHint="#94A3B8" />
-
-                <Button android:id="@+id/btnBind"
-                    android:layout_width="match_parent" android:layout_height="42dp"
-                    android:text="绑定设备" android:textSize="14sp"
-                    android:layout_marginTop="8dp" />
-
-                <TextView android:id="@+id/tvBindStatus"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textAlignment="center" android:layout_marginTop="8dp"
-                    android:textSize="13sp" android:visibility="gone" />
-            </LinearLayout>
-
-            </LinearLayout>
-        </ScrollView>
-    </LinearLayout>
-
-    <!-- 仪表盘模式（绑定后显示） -->
-    <include
-        layout="@layout/dashboard"
-        android:visibility="gone" />
-
-</LinearLayout>
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="24dp" />

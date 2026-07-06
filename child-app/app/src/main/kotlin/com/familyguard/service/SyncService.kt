@@ -158,6 +158,8 @@ class SyncService : Service() {
             val config = NetworkUtils.fetchConfig(storage.getDeviceToken())
             if (config != null) {
                 storage.saveRules(config.rules)
+                storage.saveSyncInterval(config.syncIntervalSeconds)
+                syncInterval = config.syncIntervalSeconds * 1000L
                 if (config.logLevel.isNotEmpty()) {
                     Logger.setLevel(config.logLevel)
                     Logger.i("SyncService", "日志等级已更新: ${config.logLevel}")

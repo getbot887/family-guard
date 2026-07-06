@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/block_screen_bg"
+    android:gravity="center"
+    android:padding="48dp">
+
+    <ImageView
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:src="@drawable/ic_block_app"
+        android:tint="#80FFFFFF"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="应用已限制"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="24dp"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tvBlockedApp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="16sp"
+        android:textColor="#CCFFFFFF"
+        android:layout_marginTop="8dp"
+        android:gravity="center" />
+
+    <View
+        android:layout_width="48dp"
+        android:layout_height="1dp"
+        android:background="#33FFFFFF"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="此应用当前处于限制使用时段"
+        android:textSize="14sp"
+        android:textColor="#99FFFFFF"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请稍后再试或联系家长"
+        android:textSize="14sp"
+        android:textColor="#99FFFFFF"
+        android:gravity="center"
+        android:layout_marginTop="4dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGoHome"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="返回桌面"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#33FFFFFF"
+        android:layout_marginTop="32dp"
+        android:paddingHorizontal="32dp"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_home"
+        app:iconTint="#FFFFFF"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+</LinearLayout>

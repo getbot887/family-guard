@@ -378,7 +378,7 @@ func (h *Handler) ChildRegister(c *gin.Context) {
 
 func (h *Handler) ChildGetConfig(c *gin.Context) {
 	deviceID := c.GetInt("user_id")
-	config, err := h.repo.GetChildConfig(deviceID)
+	config, err := h.repo.GetChildConfig(deviceID, h.syncInterval)
 	if err != nil {
 		c.JSON(500, apiErr("获取配置失败"))
 		return
