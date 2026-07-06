@@ -28,6 +28,19 @@ class SyncService : Service() {
 
     override fun onBind(intent: Intent?) = null
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // 收到显式启动时立即同步一次
+        scope.launch {
+            try {
+                syncRules()
+                reportEvents()
+                sendHeartbeat()
+                uploadLogs()
+            } catch (_: Exception) {}
+        }
+        return START_STICKY
+    }
+
     override fun onCreate() {
         super.onCreate()
         NetworkUtils.loadSavedUrl(this)
@@ -35,7 +48,7 @@ class SyncService : Service() {
         storage = RuleStorage(this)
         createChannel()
         startForeground(NOTIFY_ID, android.app.Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("FamilyGuard").setContentText("规则同步中")
+            .setContentTitle("FamilyGuard").setContentText("守护中")
             .setSmallIcon(android.R.drawable.ic_dialog_info).build())
         Log.d("SyncService", "已启动")
 
@@ -201,7 +214,7 @@ class SyncService : Service() {
 
     private fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val ch = NotificationChannel(CHANNEL_ID, "规则同步", NotificationManager.IMPORTANCE_LOW)
+            val ch = NotificationChannel(CHANNEL_ID, "守护服务", NotificationManager.IMPORTANCE_MIN)
             (getSystemService(NotificationManager::class.java)).createNotificationChannel(ch)
         }
     }
