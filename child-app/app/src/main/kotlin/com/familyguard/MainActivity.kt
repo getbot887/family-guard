@@ -27,6 +27,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
+    // Setup wizard views
     private lateinit var step1Status: TextView
     private lateinit var step2Status: TextView
     private lateinit var step3Status: TextView
@@ -38,11 +39,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var editCode: EditText
     private lateinit var btnBind: Button
     private lateinit var tvBindStatus: TextView
-    private lateinit var panelStatus: LinearLayout
-    private lateinit var tvConnStatus: TextView
-    private lateinit var tvConfigTime: TextView
-    private lateinit var tvLogLevel: TextView
-    private lateinit var tvTodayBlocked: TextView
+
+    // Dashboard views
+    private lateinit var dashConn: TextView
+    private lateinit var dashLogLevel: TextView
+    private lateinit var dashConfig: TextView
+    private lateinit var dashBlocked: TextView
+    private lateinit var tvHomeNotify: TextView
+    private lateinit var tvHomeAccess: TextView
+    private lateinit var tvHomeAdmin: TextView
+    private lateinit var btnDashSync: Button
+    private lateinit var btnDashUpload: Button
+    private lateinit var btnDashSettings: Button
+    private lateinit var dashboard: LinearLayout
+    private lateinit var setupWizard: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         NetworkUtils.loadSavedUrl(this)
         Logger.init(this)
 
+        // Setup wizard views
         step1Status = findViewById(R.id.step1_status)
         btnGrantNotify = findViewById(R.id.btn_grant_notify)
         step2Status = findViewById(R.id.step2_status)
@@ -64,25 +75,27 @@ class MainActivity : AppCompatActivity() {
         editCode = findViewById(R.id.editCode)
         btnBind = findViewById(R.id.btnBind)
         tvBindStatus = findViewById(R.id.tvBindStatus)
-        panelStatus = findViewById(R.id.panelStatus)
-        tvConnStatus = findViewById(R.id.tvConnStatus)
-        tvConfigTime = findViewById(R.id.tvConfigTime)
-        tvLogLevel = findViewById(R.id.tvLogLevel)
-        tvTodayBlocked = findViewById(R.id.tvTodayBlocked)
+        setupWizard = findViewById(R.id.setupWizard)
+
+        // Dashboard views
+        dashboard = findViewById(R.id.dashboard)
+        dashConn = findViewById(R.id.tvDashConn)
+        dashLogLevel = findViewById(R.id.tvDashLogLevel)
+        dashConfig = findViewById(R.id.tvDashConfig)
+        dashBlocked = findViewById(R.id.tvDashBlocked)
+        tvHomeNotify = findViewById(R.id.tvHomeNotify)
+        tvHomeAccess = findViewById(R.id.tvHomeAccess)
+        tvHomeAdmin = findViewById(R.id.tvHomeAdmin)
+        btnDashSync = findViewById(R.id.btnDashSync)
+        btnDashUpload = findViewById(R.id.btnDashUpload)
+        btnDashSettings = findViewById(R.id.btnDashSettings)
 
         editDomain.setText(NetworkUtils.baseUrl)
 
-        // 自动尝试注册（设备已绑定过则跳过配对码）
+        // 自动尝试注册（已绑定设备跳过设置向导）
         autoRegister()
 
-        refreshStatus()
-        refreshDeviceStatus()
-
-        // 如果已有token（之前绑定过），显示状态面板
-        if (NetworkUtils.getToken(this).isNotEmpty()) {
-            panelStatus.visibility = android.view.View.VISIBLE
-        }
-
+        // Setup wizard button listeners
         btnGrantNotify.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
@@ -126,7 +139,7 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread {
                         tvStatus.text = if (response.isSuccessful) "连接成功" else "连接失败: HTTP ${response.code}"
                         tvStatus.setTextColor(if (response.isSuccessful) 0xFF4CAF50.toInt() else 0xFFF44336.toInt())
-                        if (response.isSuccessful) refreshDeviceStatus()
+                        if (response.isSuccessful) refreshStatus()
                     }
                 } catch (e: Exception) {
                     runOnUiThread {
@@ -159,16 +172,12 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (token != null) {
                         NetworkUtils.saveToken(this@MainActivity, token)
-                        Logger.i("Bind", "绑定成功，deviceId=$deviceId")
-                        tvBindStatus.text = "绑定成功！"
-                        tvBindStatus.setTextColor(0xFF4CAF50.toInt())
-                        Toast.makeText(this@MainActivity, "设备已绑定", Toast.LENGTH_SHORT).show()
+                        Logger.i("Bind", "绑定成功")
+                        Toast.makeText(this@MainActivity, "绑定成功", Toast.LENGTH_SHORT).show()
+                        switchToDashboard()
                         startService(Intent(this@MainActivity, SyncService::class.java))
-                        // 显示状态面板
-                        panelStatus.visibility = android.view.View.VISIBLE
-                        refreshDeviceStatus()
                     } else {
-                        Logger.w("Bind", "绑定失败，配对码: $code")
+                        Logger.w("Bind", "绑定失败")
                         tvBindStatus.text = "绑定失败，请检查配对码"
                         tvBindStatus.setTextColor(0xFFF44336.toInt())
                     }
@@ -178,13 +187,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 状态面板按钮
-        findViewById<Button>(R.id.btnForceSync)?.setOnClickListener {
-            Toast.makeText(this, "已触发同步", Toast.LENGTH_SHORT).show()
+        // Dashboard button listeners
+        btnDashSync.setOnClickListener {
+            Toast.makeText(this, "正在同步...", Toast.LENGTH_SHORT).show()
             startService(Intent(this, SyncService::class.java))
         }
-        findViewById<Button>(R.id.btnForceUpload)?.setOnClickListener {
-            Toast.makeText(this, "已触发日志上传", Toast.LENGTH_SHORT).show()
+        btnDashUpload.setOnClickListener {
+            Toast.makeText(this, "正在上传日志...", Toast.LENGTH_SHORT).show()
             CoroutineScope(Dispatchers.IO).launch {
                 val token = NetworkUtils.getToken(this@MainActivity)
                 if (token.isNotEmpty()) {
@@ -196,16 +205,20 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        findViewById<Button>(R.id.btnRefreshStatus)?.setOnClickListener {
-            refreshDeviceStatus()
-            Toast.makeText(this, "状态已刷新", Toast.LENGTH_SHORT).show()
+        btnDashSettings.setOnClickListener {
+            // 切换到设置向导重新配置
+            dashboard.visibility = android.view.View.GONE
+            setupWizard.visibility = android.view.View.VISIBLE
+            refreshStatus()
         }
+
+        refreshStatus()
     }
 
     override fun onResume() {
         super.onResume()
         refreshStatus()
-        refreshDeviceStatus()
+        refreshDashboard()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -213,95 +226,94 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 100) refreshStatus()
     }
 
-    private fun refreshStatus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                step1Status.text = "✓ 已授权"; step1Status.setTextColor(0xFF4CAF50.toInt()); btnGrantNotify.isEnabled = false
-            } else {
-                step1Status.text = "✗ 未授权"; step1Status.setTextColor(0xFFF44336.toInt()); btnGrantNotify.isEnabled = true
-            }
-        } else {
-            step1Status.text = "✓ Android 13 以下无需此权限"; step1Status.setTextColor(0xFF4CAF50.toInt()); btnGrantNotify.isEnabled = false
-        }
-
-        val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        val enabled = am.getEnabledAccessibilityServiceList(
-            android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_GENERIC
-        ).any { it.resolveInfo.serviceInfo.packageName == packageName }
-        if (enabled) {
-            step2Status.text = "✓ 已开启"; step2Status.setTextColor(0xFF4CAF50.toInt()); btnOpenAccessibility.text = "重新检查"
-        } else {
-            step2Status.text = "✗ 未开启"; step2Status.setTextColor(0xFFF44336.toInt()); btnOpenAccessibility.text = "去设置中开启"
-        }
-
-        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
-        val adminComponent = ComponentName(this, DeviceAdmin::class.java)
-        if (dpm.isAdminActive(adminComponent)) {
-            step3Status.text = "✓ 已激活"; step3Status.setTextColor(0xFF4CAF50.toInt()); btnOpenAdmin.text = "重新检查"
-        } else {
-            step3Status.text = "✗ 未激活"; step3Status.setTextColor(0xFFF44336.toInt()); btnOpenAdmin.text = "去设置中激活"
-        }
-    }
-
-    private fun refreshDeviceStatus() {
-        val prefs = getSharedPreferences("family_guard", Context.MODE_PRIVATE)
-
-        // 后端连接状态（最近一次心跳时间）
-        val lastHeartbeat = prefs.getLong("last_heartbeat_ok", 0)
-        val now = System.currentTimeMillis()
-        tvConnStatus.text = if (now - lastHeartbeat < 5 * 60 * 1000L)
-            "🟢 后端连接: 已连接" else if (lastHeartbeat > 0)
-            "🟡 后端连接: ${(now - lastHeartbeat) / 1000 / 60}分钟前" else "🔴 后端连接: 未连接"
-
-        // 配置更新时间
-        val lastSync = prefs.getLong("last_sync", 0)
-        tvConfigTime.text = if (lastSync > 0) {
-            val fmt = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
-            "📋 配置更新: ${fmt.format(Date(lastSync))}"
-        } else "📋 配置更新: 尚未同步"
-
-        // 日志等级
-        tvLogLevel.text = "🔧 日志等级: ${prefs.getString("log_level", "debug") ?: "debug"}"
-
-        // 今日拦截次数
-        val eventsJson = prefs.getString("events", "[]") ?: "[]"
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val count = try {
-            val arr = org.json.JSONArray(eventsJson)
-            (0 until arr.length()).count { i ->
-                val t = arr.getJSONObject(i).optString("blocked_at", "")
-                t.startsWith(today)
-            }
-        } catch (_: Exception) { 0 }
-        tvTodayBlocked.text = "📊 今日拦截: $count 次"
+    private fun switchToDashboard() {
+        setupWizard.visibility = android.view.View.GONE
+        dashboard.visibility = android.view.View.VISIBLE
+        refreshDashboard()
     }
 
     private fun autoRegister() {
         val token = NetworkUtils.getToken(this)
         if (token.isNotEmpty()) {
-            panelStatus.visibility = android.view.View.VISIBLE
-            refreshDeviceStatus()
+            switchToDashboard()
             startService(Intent(this, SyncService::class.java))
             return
         }
 
         val deviceId = "android_${Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)}"
-        val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
-
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val newToken = NetworkUtils.registerDevice(deviceId, deviceName, "")
+                val newToken = NetworkUtils.registerDevice(deviceId, "", "")
                 if (newToken != null) {
                     NetworkUtils.saveToken(this@MainActivity, newToken)
                     runOnUiThread {
-                        panelStatus.visibility = android.view.View.VISIBLE
-                        refreshDeviceStatus()
+                        switchToDashboard()
                         startService(Intent(this@MainActivity, SyncService::class.java))
-                        Logger.i("AutoReg", "设备已自动重新绑定")
                     }
                 }
             } catch (_: Exception) {}
         }
+    }
+
+    private fun refreshStatus() {
+        val isNotifyGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else true
+        step1Status.text = if (isNotifyGranted) "✓" else "✗"
+        step1Status.setTextColor(if (isNotifyGranted) 0xFF4CAF50.toInt() else 0xFFF44336.toInt())
+        btnGrantNotify.visibility = if (isNotifyGranted || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) android.view.View.GONE else android.view.View.VISIBLE
+
+        val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val accessEnabled = am.getEnabledAccessibilityServiceList(
+            android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_GENERIC
+        ).any { it.resolveInfo.serviceInfo.packageName == packageName }
+        step2Status.text = if (accessEnabled) "✓" else "✗"
+        step2Status.setTextColor(if (accessEnabled) 0xFF4CAF50.toInt() else 0xFFF44336.toInt())
+
+        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+        val adminComponent = ComponentName(this, DeviceAdmin::class.java)
+        val adminActive = dpm.isAdminActive(adminComponent)
+        step3Status.text = if (adminActive) "✓" else "✗"
+        step3Status.setTextColor(if (adminActive) 0xFF4CAF50.toInt() else 0xFFF44336.toInt())
+    }
+
+    private fun refreshDashboard() {
+        val prefs = getSharedPreferences("family_guard", Context.MODE_PRIVATE)
+
+        val lastH = prefs.getLong("last_heartbeat_ok", 0)
+        val now = System.currentTimeMillis()
+        dashConn.text = if (now - lastH < 5 * 60 * 1000L) "已连接" else "未连接"
+        dashConn.setTextColor(if (now - lastH < 5 * 60 * 1000L) 0xFF22C55E.toInt() else 0xFFEF4444.toInt())
+
+        val lastSync = prefs.getLong("last_sync", 0)
+        dashConfig.text = if (lastSync > 0) SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date(lastSync)) else "尚未同步"
+
+        dashLogLevel.text = prefs.getString("log_level", "debug") ?: "debug"
+
+        val eventsJson = prefs.getString("events", "[]") ?: "[]"
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val count = try {
+            val arr = org.json.JSONArray(eventsJson)
+            (0 until arr.length()).count { arr.getJSONObject(i).optString("blocked_at", "").startsWith(today) }
+        } catch (_: Exception) { 0 }
+        dashBlocked.text = "$count"
+
+        // 权限状态（仪表盘）
+        tvHomeNotify.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) "已关闭" else "已开启"
+        tvHomeNotify.setTextColor(if (tvHomeNotify.text == "已开启") 0xFF22C55E.toInt() else 0xFFEF4444.toInt())
+
+        val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val accessOk = am.getEnabledAccessibilityServiceList(
+            android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_GENERIC
+        ).any { it.resolveInfo.serviceInfo.packageName == packageName }
+        tvHomeAccess.text = if (accessOk) "已开启" else "已关闭"
+        tvHomeAccess.setTextColor(if (accessOk) 0xFF22C55E.toInt() else 0xFFEF4444.toInt())
+
+        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+        val adminOk = dpm.isAdminActive(ComponentName(this, DeviceAdmin::class.java))
+        tvHomeAdmin.text = if (adminOk) "已激活" else "未激活"
+        tvHomeAdmin.setTextColor(if (adminOk) 0xFF22C55E.toInt() else 0xFFEF4444.toInt())
     }
 
     companion object {

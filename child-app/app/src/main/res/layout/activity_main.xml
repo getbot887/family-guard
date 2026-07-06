@@ -1,274 +1,235 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
+    <!-- 设置向导模式 -->
     <LinearLayout
+        android:id="@+id/setupWizard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:background="#F8FAFC">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="FamilyGuard 设置向导"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="请按以下步骤完成设备设置"
-            android:textSize="14sp"
-            android:textColor="#888"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Step 1: 通知权限 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="步骤 1：通知权限"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/step1_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="检查中..."
-            android:textSize="13sp"
-            android:layout_marginTop="2dp" />
-
-        <Button
-            android:id="@+id/btn_grant_notify"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="授予通知权限"
-            android:layout_marginBottom="20dp" />
-
-        <!-- Step 2: 无障碍服务 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="步骤 2：无障碍服务"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/step2_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="检查中..."
-            android:textSize="13sp"
-            android:layout_marginTop="2dp" />
-
-        <Button
-            android:id="@+id/btn_open_accessibility"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="去设置中开启"
-            android:layout_marginBottom="20dp" />
-
-        <!-- Step 3: 设备管理员 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="步骤 3：设备管理员"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/step3_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="检查中..."
-            android:textSize="13sp"
-            android:layout_marginTop="2dp" />
-
-        <Button
-            android:id="@+id/btn_open_admin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="去设置中激活"
-            android:layout_marginBottom="24dp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#ddd"
-            android:layout_marginBottom="20dp" />
-
-        <!-- 服务器地址 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="步骤 4：服务器地址"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/editDomain"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="http://192.168.2.169:8080"
-            android:inputType="textUri"
-            android:singleLine="true" />
-
+        <!-- 顶部栏 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
-
-            <Button
-                android:id="@+id/btnSave"
-                android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:background="@color/primary"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="20dp">
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="保存"
-                android:layout_marginEnd="4dp" />
-
-            <Button
-                android:id="@+id/btnTest"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="测试连接"
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_marginStart="4dp" />
+                android:text="FamilyGuard"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvStatus"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:layout_marginTop="8dp"
-            android:visibility="gone" />
-
-        <!-- 绑定设备 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="步骤 5：绑定设备"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/editCode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="输入家长提供的6位配对码"
-            android:inputType="number"
-            android:maxLength="6"
-            android:singleLine="true" />
-
-        <Button
-            android:id="@+id/btnBind"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="绑定设备"
-            android:layout_marginTop="8dp" />
-
-        <TextView
-            android:id="@+id/tvBindStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:layout_marginTop="8dp"
-            android:visibility="gone" />
-
-        <!-- 运行状态面板（绑定后显示） -->
-        <LinearLayout
-            android:id="@+id/panelStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            android:layout_marginTop="24dp"
-            android:padding="16dp"
-            android:background="#F0F4FF"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="运行状态"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
-
-            <TextView
-                android:id="@+id/tvConnStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🟢 后端连接: 已连接"
-                android:textSize="14sp"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:id="@+id/tvConfigTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📋 配置更新: —"
-                android:textSize="14sp"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:id="@+id/tvLogLevel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🔧 日志等级: debug"
-                android:textSize="14sp"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:id="@+id/tvTodayBlocked"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📊 今日拦截: 0 次"
-                android:textSize="14sp"
-                android:layout_marginBottom="12dp" />
+            android:layout_height="match_parent"
+            android:padding="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
+                android:orientation="vertical">
 
-                <Button
-                    android:id="@+id/btnForceSync"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:text="同步配置"
-                    android:textSize="12sp"
-                    android:layout_marginEnd="4dp" />
+            <!-- 步骤标题 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置向导"
+                android:textSize="22sp"
+                android:textColor="@color/text_primary"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="4dp" />
 
-                <Button
-                    android:id="@+id/btnForceUpload"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:text="上传日志"
-                    android:textSize="12sp"
-                    android:layout_marginEnd="4dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="完成以下步骤即可开始使用"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="24dp" />
 
-                <Button
-                    android:id="@+id/btnRefreshStatus"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:text="刷新状态"
-                    android:textSize="12sp" />
+            <!-- 权限步骤卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_rounded"
+                android:padding="16dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="权限设置"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
+                    <TextView
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="通知权限"
+                        android:textSize="14sp" android:textColor="@color/text_primary" />
+                    <TextView android:id="@+id/step1_status"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="13sp" android:fontFamily="sans-serif-medium" />
+                    <Button android:id="@+id/btn_grant_notify"
+                        android:layout_width="wrap_content" android:layout_height="32dp"
+                        android:text="授权" android:textSize="12sp"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
+                    <TextView
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="无障碍服务"
+                        android:textSize="14sp" android:textColor="@color/text_primary" />
+                    <TextView android:id="@+id/step2_status"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="13sp" android:fontFamily="sans-serif-medium" />
+                    <Button android:id="@+id/btn_open_accessibility"
+                        android:layout_width="wrap_content" android:layout_height="32dp"
+                        android:text="开启" android:textSize="12sp"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="设备管理员"
+                        android:textSize="14sp" android:textColor="@color/text_primary" />
+                    <TextView android:id="@+id/step3_status"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="13sp" android:fontFamily="sans-serif-medium" />
+                    <Button android:id="@+id/btn_open_admin"
+                        android:layout_width="wrap_content" android:layout_height="32dp"
+                        android:text="激活" android:textSize="12sp"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
             </LinearLayout>
 
-        </LinearLayout>
+            <!-- 服务器配置卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_rounded"
+                android:padding="16dp"
+                android:layout_marginBottom="12dp">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="服务器地址"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp" />
+
+                <EditText
+                    android:id="@+id/editDomain"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:hint="http://192.168.2.169:8080"
+                    android:inputType="textUri"
+                    android:singleLine="true"
+                    android:background="@drawable/input_border"
+                    android:paddingHorizontal="12dp"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+                    <Button android:id="@+id/btnSave"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="保存"
+                        android:textSize="13sp" android:layout_marginEnd="6dp" />
+                    <Button android:id="@+id/btnTest"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="测试连接"
+                        android:textSize="13sp" android:layout_marginStart="6dp"
+                        style="?android:attr/borderlessButtonStyle" />
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvStatus"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textAlignment="center" android:layout_marginTop="8dp"
+                    android:textSize="13sp" android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- 绑定设备卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_rounded"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="绑定设备"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp" />
+
+                <EditText
+                    android:id="@+id/editCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:hint="输入6位配对码"
+                    android:inputType="number"
+                    android:maxLength="6"
+                    android:singleLine="true"
+                    android:background="@drawable/input_border"
+                    android:paddingHorizontal="12dp"
+                    android:textSize="14sp" />
+
+                <Button android:id="@+id/btnBind"
+                    android:layout_width="match_parent" android:layout_height="42dp"
+                    android:text="绑定设备" android:textSize="14sp"
+                    android:layout_marginTop="8dp" />
+
+                <TextView android:id="@+id/tvBindStatus"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textAlignment="center" android:layout_marginTop="8dp"
+                    android:textSize="13sp" android:visibility="gone" />
+            </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
     </LinearLayout>
-</ScrollView>
+
+    <!-- 仪表盘模式（绑定后显示） -->
+    <include
+        layout="@layout/dashboard"
+        android:visibility="gone" />
+
+</LinearLayout>
