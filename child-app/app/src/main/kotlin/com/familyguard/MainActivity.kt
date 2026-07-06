@@ -21,6 +21,7 @@ import com.familyguard.util.Logger
 import com.familyguard.util.NetworkUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -95,11 +96,17 @@ class MainActivity : AppCompatActivity() {
         btnDashSync = findViewById(R.id.btnDashSync)
         btnDashUpload = findViewById(R.id.btnDashUpload)
         btnDashSettings = findViewById(R.id.btnDashSettings)
+        val layoutLoading = findViewById<LinearLayout>(R.id.layoutLoading)
+        val tvLoading = findViewById<TextView>(R.id.tvLoadingStatus)
 
         editDomain.setText(NetworkUtils.baseUrl)
 
-        // 自动尝试注册（已绑定设备跳过设置向导）
-        autoRegister()
+        // 启动时先显示加载界面，检测设备是否已绑定
+        layoutLoading.visibility = android.view.View.VISIBLE
+        setupWizard.visibility = android.view.View.GONE
+        dashboard.visibility = android.view.View.GONE
+
+        autoRegister(layoutLoading, tvLoading)
 
         // Setup wizard button listeners
         btnGrantNotify.setOnClickListener {
@@ -233,38 +240,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun switchToDashboard() {
+        findViewById<LinearLayout>(R.id.layoutLoading).visibility = android.view.View.GONE
         setupWizard.visibility = android.view.View.GONE
         dashboard.visibility = android.view.View.VISIBLE
         refreshDashboard()
     }
 
-    private fun autoRegister() {
-        val token = NetworkUtils.getToken(this)
-        if (token.isNotEmpty()) {
-            Logger.i("AutoReg", "已有Token，直接进入仪表盘")
-            switchToDashboard()
-            startService(Intent(this, SyncService::class.java))
-            return
-        }
+    private fun switchToSetupWizard() {
+        findViewById<LinearLayout>(R.id.layoutLoading).visibility = android.view.View.GONE
+        setupWizard.visibility = android.view.View.VISIBLE
+        dashboard.visibility = android.view.View.GONE
+        refreshStatus()
+    }
 
+    private fun autoRegister(layoutLoading: LinearLayout, tvLoading: TextView) {
         val deviceId = "android_${Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)}"
-        Logger.i("AutoReg", "尝试自动注册 deviceId=$deviceId")
+        Logger.i("AutoReg", "检测设备 deviceId=$deviceId")
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // 尝试用空配对码注册（后端如果已绑定会直接返回Token）
+                tvLoading.post { tvLoading.text = "正在连接服务器..." }
                 val newToken = NetworkUtils.registerDevice(deviceId, "", "")
                 if (newToken != null) {
                     NetworkUtils.saveToken(this@MainActivity, newToken)
-                    Logger.i("AutoReg", "自动注册成功")
+                    Logger.i("AutoReg", "设备已绑定，自动登录成功")
                     runOnUiThread {
                         switchToDashboard()
                         startService(Intent(this@MainActivity, SyncService::class.java))
                     }
-                } else {
-                    Logger.w("AutoReg", "自动注册失败（可能未绑定过）")
+                    return@launch
                 }
             } catch (e: Exception) {
                 Logger.e("AutoReg", "自动注册异常", e)
             }
+            // 未绑定或网络错误 → 显示设置向导
+            tvLoading.post { tvLoading.text = "首次使用，请完成设置" }
+            // 延迟一下让用户看到提示
+            kotlinx.coroutines.delay(800)
+            runOnUiThread { switchToSetupWizard() }
         }
     }
 
