@@ -72,6 +72,9 @@ class MainActivity : AppCompatActivity() {
 
         editDomain.setText(NetworkUtils.baseUrl)
 
+        // 自动尝试注册（设备已绑定过则跳过配对码）
+        autoRegister()
+
         refreshStatus()
         refreshDeviceStatus()
 
@@ -271,6 +274,34 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (_: Exception) { 0 }
         tvTodayBlocked.text = "📊 今日拦截: $count 次"
+    }
+
+    private fun autoRegister() {
+        val token = NetworkUtils.getToken(this)
+        if (token.isNotEmpty()) {
+            panelStatus.visibility = android.view.View.VISIBLE
+            refreshDeviceStatus()
+            startService(Intent(this, SyncService::class.java))
+            return
+        }
+
+        val deviceId = "android_${Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)}"
+        val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val newToken = NetworkUtils.registerDevice(deviceId, deviceName, "")
+                if (newToken != null) {
+                    NetworkUtils.saveToken(this@MainActivity, newToken)
+                    runOnUiThread {
+                        panelStatus.visibility = android.view.View.VISIBLE
+                        refreshDeviceStatus()
+                        startService(Intent(this@MainActivity, SyncService::class.java))
+                        Logger.i("AutoReg", "设备已自动重新绑定")
+                    }
+                }
+            } catch (_: Exception) {}
+        }
     }
 
     companion object {
