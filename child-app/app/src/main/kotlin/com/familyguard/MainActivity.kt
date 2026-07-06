@@ -294,7 +294,7 @@ class MainActivity : AppCompatActivity() {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val count = try {
             val arr = org.json.JSONArray(eventsJson)
-            (0 until arr.length()).count { arr.getJSONObject(i).optString("blocked_at", "").startsWith(today) }
+            (0 until arr.length()).count { idx -> arr.getJSONObject(idx).optString("blocked_at", "").startsWith(today) }
         } catch (_: Exception) { 0 }
         dashBlocked.text = "$count"
 
