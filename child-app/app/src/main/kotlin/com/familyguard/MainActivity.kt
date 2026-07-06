@@ -125,17 +125,33 @@ class MainActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val domain = editDomain.text.toString().trim()
-            if (domain.isEmpty() || !domain.startsWith("http")) {
+            if (domain.isEmpty()) {
+                NetworkUtils.updateBaseUrl(this, NetworkUtils.baseUrl)
+                editDomain.setText(NetworkUtils.baseUrl)
+            } else if (!domain.startsWith("http")) {
                 Toast.makeText(this, "请输入有效的 URL", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
+            } else {
+                NetworkUtils.updateBaseUrl(this, domain)
             }
-            NetworkUtils.updateBaseUrl(this, domain)
             tvStatus.text = "已保存: ${NetworkUtils.baseUrl}"
             tvStatus.visibility = android.view.View.VISIBLE
         }
 
         btnTest.setOnClickListener {
-            Logger.i("TestConn", "开始测试连接: ${NetworkUtils.baseUrl}")
+            val inputDomain = editDomain.text.toString().trim()
+            val testUrl = if (inputDomain.isNotEmpty() && inputDomain.startsWith("http")) {
+                NetworkUtils.updateBaseUrl(this, inputDomain)
+                inputDomain
+            } else if (inputDomain.isEmpty()) {
+                NetworkUtils.updateBaseUrl(this, NetworkUtils.baseUrl)
+                editDomain.setText(NetworkUtils.baseUrl)
+                NetworkUtils.baseUrl
+            } else {
+                Toast.makeText(this, "请输入有效的 URL", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            Logger.i("TestConn", "开始测试连接: $testUrl")
             tvStatus.text = "正在测试连接..."
             tvStatus.visibility = android.view.View.VISIBLE
             btnTest.isEnabled = false
@@ -143,7 +159,7 @@ class MainActivity : AppCompatActivity() {
 
             Thread {
                 try {
-                    val url = "${NetworkUtils.baseUrl}/health"
+                    val url = "$testUrl/health"
                     val request = okhttp3.Request.Builder().url(url).get().build()
                     val response = okhttp3.OkHttpClient.Builder()
                         .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
