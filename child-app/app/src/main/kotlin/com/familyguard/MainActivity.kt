@@ -61,6 +61,12 @@ class MainActivity : AppCompatActivity() {
         NetworkUtils.loadSavedUrl(this)
         Logger.init(this)
 
+        // 首次启动自动保存默认服务器地址
+        val prefs = getSharedPreferences("family_guard", Context.MODE_PRIVATE)
+        if (!prefs.contains("server_base_url")) {
+            NetworkUtils.updateBaseUrl(this, NetworkUtils.baseUrl)
+        }
+
         // Setup wizard views
         step1Status = findViewById(R.id.step1_status)
         btnGrantNotify = findViewById(R.id.btn_grant_notify)
@@ -235,23 +241,30 @@ class MainActivity : AppCompatActivity() {
     private fun autoRegister() {
         val token = NetworkUtils.getToken(this)
         if (token.isNotEmpty()) {
+            Logger.i("AutoReg", "已有Token，直接进入仪表盘")
             switchToDashboard()
             startService(Intent(this, SyncService::class.java))
             return
         }
 
         val deviceId = "android_${Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)}"
+        Logger.i("AutoReg", "尝试自动注册 deviceId=$deviceId")
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val newToken = NetworkUtils.registerDevice(deviceId, "", "")
                 if (newToken != null) {
                     NetworkUtils.saveToken(this@MainActivity, newToken)
+                    Logger.i("AutoReg", "自动注册成功")
                     runOnUiThread {
                         switchToDashboard()
                         startService(Intent(this@MainActivity, SyncService::class.java))
                     }
+                } else {
+                    Logger.w("AutoReg", "自动注册失败（可能未绑定过）")
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Logger.e("AutoReg", "自动注册异常", e)
+            }
         }
     }
 
