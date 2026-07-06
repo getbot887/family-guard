@@ -29,13 +29,10 @@ class SyncService : Service() {
     override fun onBind(intent: Intent?) = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // 收到显式启动时立即同步一次
+        // 收到显式启动时强制同步一次（绕过 shouldSync 检查）
         scope.launch {
             try {
-                syncRules()
-                reportEvents()
-                sendHeartbeat()
-                uploadLogs()
+                forceSync()
             } catch (_: Exception) {}
         }
         return START_STICKY
@@ -155,8 +152,8 @@ class SyncService : Service() {
 
     override fun onDestroy() { scope.cancel(); super.onDestroy() }
 
-    private suspend fun syncRules() {
-        if (!storage.shouldSync()) return
+    private suspend fun syncRules(force: Boolean = false) {
+        if (!force && !storage.shouldSync()) return
         try {
             val config = NetworkUtils.fetchConfig(storage.getDeviceToken())
             if (config != null) {
@@ -210,6 +207,13 @@ class SyncService : Service() {
         } catch (e: Exception) {
             Logger.e("SyncService", "App上报失败", e)
         }
+    }
+
+    private suspend fun forceSync() {
+        syncRules(force = true)
+        reportEvents()
+        sendHeartbeat()
+        uploadLogs()
     }
 
     private fun createChannel() {
